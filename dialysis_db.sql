@@ -152,4 +152,12 @@ INSERT INTO foods (food_id, name, portion, portion_unit, phosphorus_content, pho
 (‘23385’,‘Beef, loin, top loin steak, ‘284’,‘grams’, ‘585’,’mg’, ‘128, ‘mg’, ‘423’, ‘kcal’, ‘801’, ‘mg’),
 (‘5746’,‘Chicken, breast,‘174’,‘grams’, ‘419’,’mg’,  ‘81.8, ‘mg’, ‘275’, ‘kcal’, ‘597’, ‘mg’),
 (‘1256’,‘Yogurt, Greek, nonfat,‘156’,‘grams’, ‘212’,’mg’,  ’56.2, ‘mg’, ‘92’, ‘kcal’, ‘348’, ‘mg’),
-(‘11233’,‘Kale,‘100’,‘grams’, ‘55’,’mg’,  ‘53, ‘mg’, ‘43’, ‘kcal’, ‘348’, ‘mg’)
+(‘11233’,‘Kale,‘100’,‘grams’, ‘55’,’mg’,  ‘53, ‘mg’, ‘43’, ‘kcal’, ‘348’, ‘mg’);
+ 
+INSERT INTO patients_food (foods_food_id, patients_patient_id, patient_food_time) VALUES
+(‘1077’,‘100’, ‘2022-05-10 15:40:11’),
+(‘23385’,‘101’, ‘2022-05-20 18:32:04’),
+(‘5746’,‘102’, ‘2022-05-15 12:08:12’),
+(‘1256’,‘103’, ‘2022-05-11 15:07:55’),
+(‘11233’,‘104’, ‘2022-05-16 10:22:28’);
+
