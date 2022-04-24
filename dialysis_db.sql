@@ -146,3 +146,10 @@ sodium_lab,sodium_lab_unit,dialysis_adequacy_lab,lab_results_time,Patients_patie
 INSERT INTO dialysis_forms (dialysis_id,name,location_type,adequacy_standard) VALUES
 ('1','hemodialysis FMC','incenter','1.2'),
 ('2','peritoneal Baxter','home','1.7');
+  
+INSERT INTO foods (food_id, name, portion, portion_unit, phosphorus_content, phosphorus_unit, sodium_content, sodium_unit, calories, calories_unit, potassium_content, potassium_unit) VALUES
+('1077','Milk,whole’,‘128’,‘grams’, ‘251’,’mg’, ‘94.6’, ‘mg’, ‘152’, ‘kcal’, ‘374’, ‘mg’),
+(‘23385’,‘Beef, loin, top loin steak, ‘284’,‘grams’, ‘585’,’mg’, ‘128, ‘mg’, ‘423’, ‘kcal’, ‘801’, ‘mg’),
+(‘5746’,‘Chicken, breast,‘174’,‘grams’, ‘419’,’mg’,  ‘81.8, ‘mg’, ‘275’, ‘kcal’, ‘597’, ‘mg’),
+(‘1256’,‘Yogurt, Greek, nonfat,‘156’,‘grams’, ‘212’,’mg’,  ’56.2, ‘mg’, ‘92’, ‘kcal’, ‘348’, ‘mg’),
+(‘11233’,‘Kale,‘100’,‘grams’, ‘55’,’mg’,  ‘53, ‘mg’, ‘43’, ‘kcal’, ‘348’, ‘mg’)
