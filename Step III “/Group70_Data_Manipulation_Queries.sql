@@ -13,6 +13,12 @@ SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab,
 --Populate Dialysis Forms page
 SELECT dialysis_id, name, location_type, adequacy_standard FROM dialysis_forms;
 
+--Populate Patients_food page
+SELECT foods.food_name as "Food Name", CONCAT(patients.first_name, " ", patients.last_name) as "Patient Name",
+Patients_food.patient_food_time as "Time consumed" from patients_food
+JOIN Foods on Patients_food.Foods_food_id = Foods.food_id
+JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;
+
 /*
 Edit queries:
 */
