@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %} Foods {% endblock %}
+
+{% block content%}
+
+<h4> Foods Table </h4>
+<div class="input-group">
+    <input type="search" class="form-control rounded" placeholder="Search" aria-label="Search" aria-describedby="search-addon" />
+    <button type="button" class="btn btn-outline-primary">search</button>
+  </div>
+    <table class="table">
+        <tr class="table__header">
+            {% for header in foods_headings %}
+            <th class="table__cell">{{ header }}</th>
+            {% endfor%}
+        </tr>
+            {% for row in foods_data %}
+            <tr class="table__row">
+                {% for cell in row %}
+                <td class="table__cell">{{ cell }}</td>
+                {% endfor %}
+                <td><button type="submit" name="edit" value="{{ row[0] }}">Edit</button>
+                <td><button type="submit" name="delete" value="{{ row[0] }}">Delete</button>      
+            </tr>
+            {% endfor %}
+    </table>
+    <hr>
+    <h4> Add New Food </h4>
+    <div class="col-lg-7 offset-lg-2 my-5">
+        <form>
+            <div class="form-group">
+                <label>Food Name</label>
+                <input class="form-control" type="text" name="food_name">
+                <label>Amount</label>
+                <input class="form-control" type="text" name="amount">
+                <label>Phosphorus Content</label>
+                <input class="form-control" type="text" name="phosphorus">
+                <label>Sodium Content</label>
+                <input class="form-control" type="text" name="sodium">
+                <label>Calories</label>
+                <input class="form-control" type="text" name="calories">
+                <label>Potassium Content</label>
+                <input class="form-control" type="text" name="potassium">
+            </div>
+            <hr>
+            <input class="btn-primary form-control" type="submit" value="Submit">
+        </form>
+    </div>
+{% endblock%}
+
+<input id="row_id" name="row_id" type="hidden" value="{{ row[0] }}">
+                <td><button type="submit" value="{{ row[] }}">Delete</button>
