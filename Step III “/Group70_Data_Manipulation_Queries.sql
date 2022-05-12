@@ -87,6 +87,36 @@ SELECT patient_id, CONCAT(first_name, ' ', last_name) as Name FROM Patients;
 SELECT food_id, food_name FROM Foods;
 
 /*
+Update queries:
+*/
+--update an entry in Lab_Results:
+UPDATE Lab_Results
+SET phosphorus_lab = :phos_lab_from_update_form, potassium_lab = :potassium_lab_from_update_form, sodium_lab = :sodium_lab_from_update_form, 
+dialysis_adequacy_lab = :dialysis_adequacy_from_update_form, lab_results = :lab_time_from_update_form
+WHERE lab_id = :lab_id_from_input_form;
+
+--update an entry in Dialysis_Forms:
+UPDATE Dialysis_Forms
+SET name = :dialysis_name_from_update_form, location_type = :location_type_from_update_form, adequacy_standard = :adequacy_standard_from_update_form
+WHERE dialysis_id = :dialysis_id_from_input_form;
+
+--update an entry in Patients:
+UPDATE Patients
+SET last_name :last_name_from_update_form, first_name = :first_name_from_update_form, age = :age_from_update_form, gender = :gender_from_update_form, 
+height = :height_from_update_form, weight = :weight_from_update_form
+WHERE patients_id = :patients_id_from_update_form;
+
+--update an entry in Foods:
+UPDATE Foods
+SET food_name = :food_name_from_update_form, phosphorous_content = :phosphorous_content_from_update_form, sodium_content = :sodium_content_from_update_form,
+calories = :calories_from_update_form, potassium_content = :potassium_content_from_update_form, amount = :amount_from_update_form
+WHERE food_id = :food_id_from_update_form;
+
+--update the food in patients_food:
+UPDATE Patients_Food
+SET Foods_food_id = :Foods_food_id_from_update_form
+WHERE 
+/*
 Other queries:
 */
 --Associate a person with a food
