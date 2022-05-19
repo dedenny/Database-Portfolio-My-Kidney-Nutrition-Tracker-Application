@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %} Patients {% endblock %}
+
+{% block content%}
+
+<h4> Patients Table </h4>
+    <table class="table">
+        <tr class="table__header">
+            {% for header in patients_headings %}
+            <th class="table__cell">{{ header }}</th>
+            {% endfor %}
+        </tr>
+            {% for row in patients_data %}
+            <tr class="table__row">
+                {% for cell in row %}
+                <td class="table__cell">{{ cell }}</td>
+                {% endfor %}     
+            </tr>
+            {% endfor %}
+    </table>
+    <hr>
+    <h4> Add New Patient </h4>
+    <div class="col-lg-7 offset-lg-2 my-5">
+        <form>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input class="form-control" type="text" name="last_name">
+                <label>First Name</label>
+                <input class="form-control" type="text" name="first_name">
+                <label>Age</label>
+                <input class="form-control" type="text" name="age">
+                <label>Gender</label>
+                <input class="form-control" type="text" name="gender">
+                <label>Height</label>
+                <input class="form-control" type="text" name="height">
+                <label>Weight</label>
+                <input class="form-control" type="text" name="weight">
+            </div>
+            <hr>
+            <input class="btn-primary form-control" type="submit" value="Submit">
+        </form>
+    </div>
+{% endblock %}
