@@ -1,7 +1,13 @@
-from flask import Flask,render_template, request, json
+from flask import Flask,render_template, request, json, session, redirect, url_for
+from flask_wtf import FlaskForm
+from flask_bootstrap import Bootstrap
+from wtforms import StringField, SubmitField, IntegerField
+from wtforms.validators import DataRequired
 import database.db_connector as db
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = '7aa2bbaca21981ea2d0729fd9fb29565be20bb4541d81db437eb91ac85134ea4'
+bootstrap = Bootstrap(app)
 db_connection = db.connect_to_database()
 
 # patients_headings= ("patient_id", "last_name","first_name", "age", "gender", "height", "weight")
@@ -37,49 +43,90 @@ db_connection = db.connect_to_database()
 #      ("5", "7.2", "4.5", "134", "2.2","2022-05-11 10:19:25")
 # )
 
+class NewPatient(FlaskForm):
+    lname = StringField('Last Name', validators = [DataRequired()])
+    fname = StringField('First Name', validators = [DataRequired()])
+    age = IntegerField('Age', validators = [DataRequired()])
+    gender = StringField('Gender')
+    height = IntegerField('Height (inches)', validators = [DataRequired()])
+    weight = IntegerField('Weight (lbs)', validators = [DataRequired()])
+    submit = SubmitField('Submit')
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
 @app.route("/patients", methods=["POST", "GET"])
-def patients_view():
-    query = "SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;"
-    cursor = db.execute_query(db_connection=db_connection, query=query)
-    results = cursor.fetchall()
-    return render_template("patients.html", patients=results)
+def patients_view(request):
+    form = NewPatient(request.post)
+    if form.validate_on_submit():
+        last_name = form.lname.data
+        first_name = form.fname.data
+        age = form.age.data
+        gender = form.gender.data
+        height = form.height.data
+        weight = form.weight.data
+        return redirect(url_for('patients_view'))
+    if request.method == "GET":
+        query = "SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;"
+        cursor = db.execute_query(db_connection=db_connection, query=query)
+        results = cursor.fetchall()
+        return render_template("patients.html", form=form, patients=results)
+    if request.method == "POST":
+        if request.form.get("Add_Patient"):  # everything except gender listed as "NOT NULL"
+            last_name = request.form["last_name"]
+            first_name = request.form["fname"]
+            age = request.form["age"]
+            gender = request.form["gender"]   
+            height = request.form["height"]
+            weight = request.form["weight"]
+        if gender == "":
+            query = "INSERT INTO patients (last_name, first_name, age, height, weight) VALUES (%s, %s, %s, %s, %s);"
+            cursor = db.execute_query(db_connection=db_connection, query=query, query_params=(last_name,first_name, age, height,weight))
+            
+        else:
+            cur = mysql.connection.cursor()
+            query = "INSERT INTO patients (last_name, first_name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s, %s);"
+            cur.execute(query, (last_name,first_name, age, gender, height,weight))
+            mysql.connection.commit()
+
 
 @app.route("/foods", methods=["POST", "GET"])
 def foods_view():
-    query = 'SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;'
-    cursor = db.execute_query(db_connection=db_connection, query=query)
-    results = cursor.fetchall()
-    return render_template("foods.html", foods = results)
+    if request.method == "GET":
+        query = 'SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;'
+        cursor = db.execute_query(db_connection=db_connection, query=query)
+        results = cursor.fetchall()
+        return render_template("foods.html", foods = results)
 
 @app.route("/lab_results", methods=["POST", "GET"])
 def labs_view():
-    query = "SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time FROM Lab_Results;"
-    cursor = db.execute_query(db_connection=db_connection, query=query)
-    results = cursor.fetchall()
-    return render_template("lab_results.html", lab_data = results)
+    if request.method == "GET":
+        query = "SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time FROM Lab_Results;"
+        cursor = db.execute_query(db_connection=db_connection, query=query)
+        results = cursor.fetchall()
+        return render_template("lab_results.html", lab_data = results)
 
 @app.route("/dialysis_forms", methods=["POST", "GET"])
 def dialysis_forms_view():
-    query = 'SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;'
-    cursor = db.execute_query(db_connection=db_connection,query=query)
-    results = cursor.fetchall()
-    return render_template("dialysis_forms.html", dialysis_data =results)
+    if request.method == "GET":
+        query = 'SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;'
+        cursor = db.execute_query(db_connection=db_connection,query=query)
+        results = cursor.fetchall()
+        return render_template("dialysis_forms.html", dialysis_data =results)
 
 @app.route("/patients_foods", methods=["POST", "GET"])
 def patients_foods_view():
-    query = """
-    SELECT Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
-Patients_Food.patient_food_time as "Time consumed" from Patients_Food
-JOIN Foods on Patients_Food.Foods_food_id = Foods.food_id
-JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;
-"""
-    cursor = db.execute_query(db_connection=db_connection,query=query)
-    results = cursor.fetchall()
-    return render_template("patients_foods.html", patient_foods=results)
+    if request.method == "GET":
+        query = """
+        SELECT Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
+    Patients_Food.patient_food_time as "Time consumed" from Patients_Food
+    JOIN Foods on Patients_Food.Foods_food_id = Foods.food_id
+    JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;
+    """
+        cursor = db.execute_query(db_connection=db_connection,query=query)
+        results = cursor.fetchall()
+        return render_template("patients_foods.html", patient_foods=results)
 
 
 @app.route("/delete_foods/<int:id>")
