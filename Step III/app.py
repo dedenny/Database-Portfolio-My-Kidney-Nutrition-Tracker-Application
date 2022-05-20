@@ -5,9 +5,21 @@ from flask_mysqldb import MySQL
 from wtforms import StringField, SubmitField, IntegerField
 from wtforms.validators import DataRequired
 import database.db_connector as db
+import os
+
+host = os.environ.get("340DBHOST")
+user = os.environ.get("340DBUSER")
+passwd = os.environ.get("340DBPW")
 
 app = Flask(__name__)
+
+app.config['MYSQL_HOST'] = os.environ.get("340DBHOST")
+app.config['MYSQL_USER'] =  os.environ.get("340DBUSER")
+app.config['MYSQL_PASSWORD'] = passwd = os.environ.get("340DBPW")
+app.config['MYSQL_DB'] = os.environ.get("340DB")
+app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 app.config['SECRET_KEY'] = '7aa2bbaca21981ea2d0729fd9fb29565be20bb4541d81db437eb91ac85134ea4'
+
 bootstrap = Bootstrap(app)
 mysql = MySQL(app)
 db_connection = db.connect_to_database()
@@ -55,6 +67,16 @@ class NewPatient(FlaskForm):
     weight = IntegerField('Weight (lbs)', validators = [DataRequired()])
     submit = SubmitField('Submit')
 
+class EditPatient(FlaskForm):
+    pat_id = IntegerField('Patient ID', validators = [DataRequired()])
+    lname = StringField('Last Name', validators = [DataRequired()])
+    fname = StringField('First Name', validators = [DataRequired()])
+    age = IntegerField('Age', validators = [DataRequired()])
+    gender = StringField('Gender')
+    height = IntegerField('Height (inches)', validators = [DataRequired()])
+    weight = IntegerField('Weight (lbs)', validators = [DataRequired()])
+    submit = SubmitField('Submit')
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -63,6 +85,7 @@ def home():
 def patients_view():
     gender = None
     form = NewPatient()
+
 
     if request.method == "GET":
         query = "SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;"
@@ -145,10 +168,42 @@ def patients_foods_view():
         return render_template("patients_foods.html", patient_foods=results)
 
 
+# @app.route("/delete_patient/<int:patient_id>", methods = ["GET", "POST"])
+# def delete_patient(patient_id):
+#     query = "DELETE FROM Patients WHERE patient_id = '%s';"
+#     cur = mysql.connection.cursor()
+#     cur.execute(query, (patient_id))
+#     mysql.connection.commit()
+#     return redirect(url_for("patients_view"))
+
 @app.route("/delete_patient/<int:patient_id>")
 def delete_patient(patient_id):
     query = "DELETE FROM Patients WHERE patient_id = '%s';"
     cur = mysql.connection.cursor()
     cur.execute(query, (patient_id,))
     mysql.connection.commit()
+    return redirect(url_for("patients_view"))
+
+@app.route("/update_patient/<int:patient_id>", methods=["POST","GET"])
+@app.route("/update_patient/", methods=["POST","GET"])
+def update_patient(patient_id=None):
+    form = EditPatient()
+    if request.method == "GET":
+        return render_template("edit_patient.html", form=form)
+    if request.method == "POST":
+        pat_id = request.form['pat_id']
+        last_name = request.form['lname']
+        first_name = request.form['fname']
+        age = request.form['age']
+        gender = request.form['gender']
+        height = request.form['height']
+        weight = request.form['weight']
+        query = """UPDATE Patients
+    SET last_name = %s, first_name = %s, age = %s, gender = %s, 
+    height = %s, weight = %s
+    WHERE patient_id = %s;"""
+        cur = mysql.connection.cursor()
+        cur.execute(query, (last_name, first_name, age, gender, height, weight, pat_id))
+        mysql.connection.commit()
+
     return redirect(url_for("patients_view"))

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %} Edit Patient {% endblock %}
+
+{% block content%}
+<h1>Edit a Patient</h1>
+<form method = "POST" action ="/update_patient/{{patient_id}}">
+    <div>{{form.lname.label}} : {{ form.lname() }}</div>
+    <div>{{form.fname.label}} : {{ form.fname() }} </div>
+    <div>{{form.age.label}} : {{ form.age() }} </div>
+    <div>{{form.gender.label}} : {{form.gender() }}</div>
+    <div>{{form.height.label}} : {{form.height() }}</div>
+    <div>{{ form.weight.label}} : {{form.weight() }}</div>
+    <div>{{form.pat_id.label}} : {{form.pat_id() }}</div>
+    {{form.submit()}}
+</form>
+
+{% endblock%}

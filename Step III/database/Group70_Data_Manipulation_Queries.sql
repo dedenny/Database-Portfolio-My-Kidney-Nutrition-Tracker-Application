@@ -102,9 +102,9 @@ WHERE dialysis_id = :dialysis_id_from_input_form;
 
 --update an entry in Patients:
 UPDATE Patients
-SET last_name :last_name_from_update_form, first_name = :first_name_from_update_form, age = :age_from_update_form, gender = :gender_from_update_form, 
+SET last_name = :last_name_from_update_form, first_name = :first_name_from_update_form, age = :age_from_update_form, gender = :gender_from_update_form, 
 height = :height_from_update_form, weight = :weight_from_update_form
-WHERE patients_id = :patients_id_from_update_form;
+WHERE patient_id = :patients_id_from_update_form;
 
 --update an entry in Foods:
 UPDATE Foods
