@@ -6,25 +6,29 @@
 <h4> Lab Results Table </h4>
     <table class="table">
         <tr class="table__header">
-            {% for header in labs_headings %}
-            <th class="table__cell">{{ header }}</th>
-            {% endfor%}
+            {% for key in lab_data[0].keys() %}
+            <th class="table__cell">{{ key }}</th>
+            {% endfor %}
         </tr>
-            {% for row in labs_data %}
+        <tbody>
+            {% for lab in lab_data %}
             <tr class="table__row">
-                {% for cell in row %}
-                <td class="table__cell">{{ cell }}</td>
-                {% endfor %}
-                <td><button type="submit" name="edit" value="{{ row[0] }}">Edit</button>
-                <td><button type="submit" name="delete" value="{{ row[0] }}">Delete</button>      
+                {% for key in lab.keys() %}
+                <td class="table__cell">{{ lab[key] }}</td>
+                {% endfor %}      
+                <td><button type="submit" name="edit" >Edit</button></td>
+                <td><button type="submit" name="delete">Delete</button></td>
             </tr>
             {% endfor %}
+        </tbody>
     </table>
     <hr>
     <h4> Add New Lab Result </h4>
     <div class="col-lg-7 offset-lg-2 my-5">
         <form>
             <div class="form-group">
+                <label>Patient ID</label>
+                <input class="form-control" type="text" name="patient_id">
                 <label>Phosphorus Lab</label>
                 <input class="form-control" type="text" name="phos_lab">
                 <label>Potassium Lab</label>
@@ -40,4 +44,4 @@
             <input class="btn-primary form-control" type="submit" value="Submit">
         </form>
     </div>
-{% endblock%}
+{% endblock %}
