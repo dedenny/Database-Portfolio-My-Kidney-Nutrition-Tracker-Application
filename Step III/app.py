@@ -1,6 +1,7 @@
 from flask import Flask,render_template, request, json, session, redirect, url_for
 from flask_wtf import FlaskForm
 from flask_bootstrap import Bootstrap
+from flask_mysqldb import MySQL
 from wtforms import StringField, SubmitField, IntegerField
 from wtforms.validators import DataRequired
 import database.db_connector as db
@@ -8,7 +9,9 @@ import database.db_connector as db
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '7aa2bbaca21981ea2d0729fd9fb29565be20bb4541d81db437eb91ac85134ea4'
 bootstrap = Bootstrap(app)
+mysql = MySQL(app)
 db_connection = db.connect_to_database()
+
 
 # patients_headings= ("patient_id", "last_name","first_name", "age", "gender", "height", "weight")
 # patients_data= (
@@ -57,38 +60,51 @@ def home():
     return render_template("index.html")
 
 @app.route("/patients", methods=["POST", "GET"])
-def patients_view(request):
-    form = NewPatient(request.post)
-    if form.validate_on_submit():
-        last_name = form.lname.data
-        first_name = form.fname.data
-        age = form.age.data
-        gender = form.gender.data
-        height = form.height.data
-        weight = form.weight.data
-        return redirect(url_for('patients_view'))
+def patients_view():
+    gender = None
+    form = NewPatient()
+
     if request.method == "GET":
         query = "SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;"
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
         return render_template("patients.html", form=form, patients=results)
     if request.method == "POST":
-        if request.form.get("Add_Patient"):  # everything except gender listed as "NOT NULL"
-            last_name = request.form["last_name"]
-            first_name = request.form["fname"]
-            age = request.form["age"]
-            gender = request.form["gender"]   
-            height = request.form["height"]
-            weight = request.form["weight"]
-        if gender == "":
-            query = "INSERT INTO patients (last_name, first_name, age, height, weight) VALUES (%s, %s, %s, %s, %s);"
-            cursor = db.execute_query(db_connection=db_connection, query=query, query_params=(last_name,first_name, age, height,weight))
-            
+        last_name = request.form['lname']
+        first_name = request.form['fname']
+        age = request.form['age']
+        gender = request.form['gender']
+        height = request.form['height']
+        weight = request.form['weight']
+        if gender == '':
+            query = "INSERT INTO Patients (last_name, first_name, age, height, weight) VALUES (%s, %s, %s, %s, %s);"
+            db.execute_query(db_connection=db_connection, query=query,query_params=(last_name,first_name,age,height,weight))
+            return redirect(url_for('patients_view'))
         else:
-            cur = mysql.connection.cursor()
-            query = "INSERT INTO patients (last_name, first_name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s, %s);"
-            cur.execute(query, (last_name,first_name, age, gender, height,weight))
-            mysql.connection.commit()
+            query = "INSERT INTO Patients (last_name, first_name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s, %s);"
+            db.execute_query(db_connection=db_connection, query=query,query_params=(last_name,first_name,age,gender,height,weight))
+            return redirect(url_for('patients_view'))
+
+    
+    
+    # form.validate_on_submit():
+    #     last_name = form.lname.data
+    #     first_name = form.fname.data
+    #     age = form.age.data
+    #     gender = form.gender.data
+    #     height = form.height.data
+    #     weight = form.weight.data
+    #     if gender == None:
+    #         print('adding w/o gender')
+    #         query = "INSERT INTO patients (last_name, first_name, age, height, weight) VALUES (%s, %s, %s, %s, %s);"
+    #         cursor = db.execute_query(db_connection=db_connection, query=query, query_params=(last_name,first_name, age, height,weight))
+    #     else:
+    #         print('adding w/ gender')
+    #         query = "INSERT INTO patients (last_name, first_name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s, %s);"
+    #         cursor = db.execute_query(db_connection=db_connection, query=query, query_params=(last_name,first_name, age, gender, height,weight))
+    #     return redirect('/patients')
+    # if request.method == "POST":
+
 
 
 @app.route("/foods", methods=["POST", "GET"])
@@ -129,10 +145,10 @@ def patients_foods_view():
         return render_template("patients_foods.html", patient_foods=results)
 
 
-@app.route("/delete_foods/<int:id>")
-def delete_foods(id):
-    query = "DELETE FROM Foods WHERE food_id = '%s';"
+@app.route("/delete_patient/<int:patient_id>")
+def delete_patient(patient_id):
+    query = "DELETE FROM Patients WHERE patient_id = '%s';"
     cur = mysql.connection.cursor()
-    cur.execute(query, (id,))
+    cur.execute(query, (patient_id,))
     mysql.connection.commit()
-    return redirect("/foods")
+    return redirect(url_for("patients_view"))

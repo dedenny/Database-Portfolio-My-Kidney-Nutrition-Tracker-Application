@@ -31,7 +31,15 @@
         {% endfor %}
     </tbody>
 </table>
-{{ wtf.quick_form(form) }}
+<form method = "POST" action ="/patients">
+    <div>{{form.lname.label}} : {{ form.lname() }}</div>
+    <div>{{form.fname.label}} : {{ form.fname() }} </div>
+    <div>{{form.age.label}} : {{ form.age() }} </div>
+    <div>{{form.gender.label}} : {{form.gender() }}</div>
+    <div>{{form.height.label}} : {{form.height() }}</div>
+    <div>{{ form.weight.label}} : {{form.weight() }}</div>
+    {{form.submit()}}
+</form>
 {% endblock%}
 
 <!--
