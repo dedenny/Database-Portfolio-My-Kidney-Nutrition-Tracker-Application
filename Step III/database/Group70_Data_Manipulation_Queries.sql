@@ -2,19 +2,19 @@
 Page population queries:
 */
 --Populate Patients page
-SELECT patient_id, last_name, first_name, age, gender, height, weight FROM patients;
+SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;
 
 --Populate Foods page
-SELECT food_id, name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM foods;
+SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;
 
 --Populate Lab Results page
-SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time FROM lab_results;
+SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time FROM Lab_Results;
 
 --Populate Dialysis Forms page
-SELECT dialysis_id, name, location_type, adequacy_standard FROM dialysis_forms;
+SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;
 
 --Populate Patients_food page
-SELECT foods.food_name as "Food Name", CONCAT(patients.first_name, " ", patients.last_name) as "Patient Name",
+SELECT Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
 Patients_food.patient_food_time as "Time consumed" from patients_food
 JOIN Foods on Patients_food.Foods_food_id = Foods.food_id
 JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;

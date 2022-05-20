@@ -6,19 +6,22 @@
 <h4> Dialysis Forms Table </h4>
     <table class="table">
         <tr class="table__header">
-            {% for header in dialysis_headings %}
-            <th class="table__cell">{{ header }}</th>
-            {% endfor%}
+            {% for key in dialysis_data[0].keys() %}
+            <th class="table__cell">{{ key }}</th>
+            {% endfor %}
         </tr>
-            {% for row in dialysis_data %}
+        <tbody>
+            {% for dialysis_type in dialysis_data %}
             <tr class="table__row">
-                {% for cell in row %}
-                <td class="table__cell">{{ cell }}</td>
+                {% for key in dialysis_type.keys() %}
+                <td class="table__cell">{{ dialysis_type[key] }}</td>
                 {% endfor %}
-                <td><button type="submit" name="edit" value="{{ row[0] }}">Edit</button>
-                <td><button type="submit" name="delete" value="{{ row[0] }}">Delete</button>      
+                <td><button type="submit" name="edit" >Edit</button></td>
+                <td><button type="submit" name="delete">Delete</button></td>     
             </tr>
             {% endfor %}
+        </tbody>
+
     </table>
     <hr>
     <h4> Add New Dialysis Form </h4>

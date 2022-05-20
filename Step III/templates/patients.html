@@ -4,7 +4,38 @@
 {% block content%}
 
 <h4> Patients Table </h4>
-    <table class="table">
+<table>
+    <thead>
+    <tr>
+        <!-- Iterate through each key in the first entry to get the
+        column name -->
+        {% for key in patients[0].keys() %}
+    
+        <!-- Create a <th> tag with the key inside of it, this will be
+        our header row -->
+        <th>{{ key }}</th>
+    
+        <!-- End of this for loop -->
+        {% endfor %}
+    </tr>
+    <tbody>
+    
+    <!-- Now, iterate through every person in bsg_people -->
+        {% for person in patients %}
+        <tr>
+            <!-- Then iterate through every key in the current person dictionary -->
+            {% for key in person.keys() %}
+        
+            <!-- Create a <td> element with the value of that key in it -->
+            <td>{{person[key]}}</td>
+            {% endfor %}
+            <td><button type="submit" name="edit" >Edit</button></td>
+            <td><button type="submit" name="delete">Delete</button></td>  
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+    <!-- <table class="table">
         <tr class="table__header">
             {% for header in patients_headings %}
             <th class="table__cell">{{ header }}</th>
@@ -19,7 +50,7 @@
                 <td><button type="submit" name="delete" value="{{ row[0] }}">Delete</button>      
             </tr>
             {% endfor %}
-    </table>
+    </table> -->
     <hr>
     <h4> Add New Patient </h4>
     <div class="col-lg-7 offset-lg-2 my-5">

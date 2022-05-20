@@ -25,6 +25,12 @@
         <p>Records the type of dialysis the kidney patient is on; common types of dialysis include in-center, home-hemo, and peritoneal dialysis. The form of dialysis can affect the desired lab results, and different forms of dialysis have different desired adequacy metrics. Able to add new dialysis forms, delete and modify entries.
         </p>
     </li>
+    <li>
+        <h3><a href="{{ url_for('patients_foods_view') }}">Patients Food</a></h3>
+        <h6>Description:</h6>  
+        <p> Intersection table between Patients and Foods. This connects the patients to food that they have eaten, and adds a time characteristic for when the patient ate the food.
+        </p>
+    </li>
 </ul>
 
-{% endblock%}
+{% endblock %}
