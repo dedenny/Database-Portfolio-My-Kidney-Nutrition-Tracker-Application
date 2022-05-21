@@ -2,7 +2,7 @@ from flask import Flask,render_template, request, json, session, redirect, url_f
 from flask_wtf import FlaskForm
 from flask_bootstrap import Bootstrap
 from flask_mysqldb import MySQL
-from wtforms import StringField, SubmitField, IntegerField
+from wtforms import StringField, SubmitField, IntegerField, FloatField, DateTimeField, SelectField
 from wtforms.validators import DataRequired
 import database.db_connector as db
 import os
@@ -58,24 +58,86 @@ db_connection = db.connect_to_database()
 #      ("5", "7.2", "4.5", "134", "2.2","2022-05-11 10:19:25")
 # )
 
-class NewPatient(FlaskForm):
-    lname = StringField('Last Name', validators = [DataRequired()])
-    fname = StringField('First Name', validators = [DataRequired()])
-    age = IntegerField('Age', validators = [DataRequired()])
-    gender = StringField('Gender')
-    height = IntegerField('Height (inches)', validators = [DataRequired()])
-    weight = IntegerField('Weight (lbs)', validators = [DataRequired()])
-    submit = SubmitField('Submit')
+# Consider making a new file for these form definitions & adding an import statement
 
-class EditPatient(FlaskForm):
-    pat_id = IntegerField('Patient ID', validators = [DataRequired()])
+class NewPatient(FlaskForm):
+    lname = StringField('Last Name', validators = [DataRequired()])  # Consider adding Length Validator to match the max length dictated by MySQL
+    fname = StringField('First Name', validators = [DataRequired()])
+    age = IntegerField('Age', validators = [DataRequired()])
+    gender = StringField('Gender')
+    height = IntegerField('Height (inches)', validators = [DataRequired()])
+    weight = IntegerField('Weight (lbs)', validators = [DataRequired()])
+    submit = SubmitField('Create New Patient')
+
+class EditPatient(FlaskForm): # possible to find a way to populate this with existing data?
+    pat_id = IntegerField('Patient ID', validators = [DataRequired()])   
     lname = StringField('Last Name', validators = [DataRequired()])
     fname = StringField('First Name', validators = [DataRequired()])
     age = IntegerField('Age', validators = [DataRequired()])
     gender = StringField('Gender')
     height = IntegerField('Height (inches)', validators = [DataRequired()])
     weight = IntegerField('Weight (lbs)', validators = [DataRequired()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Edit Patient')
+
+class NewLabResult(FlaskForm):
+    phos_lab = FloatField('Phosphorous Lab')
+    pot_lab = FloatField('Potassium Lab')
+    sod_lab = IntegerField('Sodium Lab')
+    dial_lab = FloatField('Dialysis Adequacy Lab')
+    lab_time = DateTimeField('Lab Results Time')
+    pat_id = SelectField('Patient Select') # how to show this as a list of existing patients? Ideally by name rather than id
+    dial_id = SelectField('Dialysis Type Select') 
+    submit = SubmitField('Create New Lab Result')
+
+class EditLabResult(FlaskForm):
+    lab_id = IntegerField('Lab ID')
+    phos_lab = FloatField('Phosphorous Lab')
+    pot_lab = FloatField('Potassium Lab')
+    sod_lab = IntegerField('Sodium Lab')
+    dial_lab = FloatField('Dialysis Adequacy Lab')
+    lab_time = DateTimeField('Lab Results Time')
+    pat_id = SelectField('Patient Select') 
+    dial_id = SelectField('Dialysis Type Select') 
+    submit = SubmitField('Edit Lab Result')
+
+class NewFood(FlaskForm):
+    food_name = StringField('Food Name', validators = [DataRequired()])
+    phosphorous_content = IntegerField('Phosphorous Content') # need to add units
+    sodium_content = IntegerField('Phosphorous Content')
+    calories = IntegerField('Calories')
+    potassium_content = IntegerField('Potassium Content')
+    amount = IntegerField('Serving Size')
+
+class EditFood(FlaskForm):
+    food_id = IntegerField('Food ID', validators = [DataRequired()])  # find a way to get rid of this, just use food_name?? (consider duplicate names)
+    food_name = StringField('Food Name', validators = [DataRequired()])
+    phosphorous_content = IntegerField('Phosphorous Content') # need to add units
+    sodium_content = IntegerField('Phosphorous Content')
+    calories = IntegerField('Calories')
+    potassium_content = IntegerField('Potassium Content')
+    amount = IntegerField('Serving Size')
+
+class NewDialysisForm(FlaskForm):
+    name = StringField('Name of Dialysis Type', validators = [DataRequired()])
+    location_type = StringField('Location Type', validators = [DataRequired()])
+    adequacy_standard = FloatField('Adequacy Standard', validators = [DataRequired()])
+
+class EditDialysisForm(FlaskForm):
+    dialysis_id = IntegerField('Dialysis ID', validators = [DataRequired()])
+    name = StringField('Name of Dialysis Type', validators = [DataRequired()])
+    location_type = StringField('Location Type', validators = [DataRequired()])
+    adequacy_standard = FloatField('Adequacy Standard', validators = [DataRequired()])
+
+class NewPatientFood(FlaskForm):  # why are we using a composite primary key??
+    food_id = IntegerField('Food ID', validators = [DataRequired()])
+    patient_id = IntegerField('Food ID', validators = [DataRequired()])
+    food_time = DateTimeField('Consumption Time', validators = [DataRequired()])
+
+class EditPatientFood(FlaskForm):  
+    food_id = IntegerField('Food ID', validators = [DataRequired()])
+    patient_id = IntegerField('Food ID', validators = [DataRequired()])
+    food_time = DateTimeField('Consumption Time', validators = [DataRequired()])
+
 
 @app.route("/")
 def home():
@@ -107,27 +169,6 @@ def patients_view():
             query = "INSERT INTO Patients (last_name, first_name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s, %s);"
             db.execute_query(db_connection=db_connection, query=query,query_params=(last_name,first_name,age,gender,height,weight))
             return redirect(url_for('patients_view'))
-
-    
-    
-    # form.validate_on_submit():
-    #     last_name = form.lname.data
-    #     first_name = form.fname.data
-    #     age = form.age.data
-    #     gender = form.gender.data
-    #     height = form.height.data
-    #     weight = form.weight.data
-    #     if gender == None:
-    #         print('adding w/o gender')
-    #         query = "INSERT INTO patients (last_name, first_name, age, height, weight) VALUES (%s, %s, %s, %s, %s);"
-    #         cursor = db.execute_query(db_connection=db_connection, query=query, query_params=(last_name,first_name, age, height,weight))
-    #     else:
-    #         print('adding w/ gender')
-    #         query = "INSERT INTO patients (last_name, first_name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s, %s);"
-    #         cursor = db.execute_query(db_connection=db_connection, query=query, query_params=(last_name,first_name, age, gender, height,weight))
-    #     return redirect('/patients')
-    # if request.method == "POST":
-
 
 
 @app.route("/foods", methods=["POST", "GET"])
