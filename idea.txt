@@ -1,0 +1,4 @@
+use git checkout features instead of folders for each step?
+
+use macros (functions), imported from macros.html
+

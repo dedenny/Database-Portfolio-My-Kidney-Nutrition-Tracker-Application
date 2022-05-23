@@ -186,6 +186,23 @@ def labs_view():
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
         return render_template("lab_results.html", lab_data = results)
+    if request.method == 'POST':
+        phos_lab = request.form['phos_lab']
+        pot_lab = request.form['pot_lab']
+        sod_lab = request.form['sod_lab']
+        dial_lab = request.form['dial_lab']
+        lab_time = request.form['lab_time']
+        pat_id = request.form['pat_id']
+        dial_id = request.form['dial_id']
+        for x in (phos_lab,pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id):
+            if x == '':
+                x = 'NULL'
+        query = """INSERT INTO lab_results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time
+Patients_patient_id,Dialysis_Forms_dialysis_id) VALUES
+(%s, %s, %s, %s, %s
+%s, %s);"""
+        db.execute_query(db_connection = db_connection, query = query)
+        return redirect(url_for('labs_view'))
 
 @app.route("/dialysis_forms", methods=["POST", "GET"])
 def dialysis_forms_view():
@@ -248,3 +265,4 @@ def update_patient(patient_id=None):
         mysql.connection.commit()
 
     return redirect(url_for("patients_view"))
+
