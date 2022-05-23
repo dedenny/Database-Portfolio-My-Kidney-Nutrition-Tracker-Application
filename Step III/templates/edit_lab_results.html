@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %} Edit Lab Result {% endblock %}
+
+{% block content%}
+<h1>Edit a Lab Result</h1>
+<form method = "POST" action ="/lab_results">
+    <div>{{form.phos_lab.label}} : {{ form.phos_lab() }}</div>
+    <div>{{form.pot_lab.label}} : {{ form.pot_lab() }} </div>
+    <div>{{form.sod_lab.label}} : {{ form.sod_lab() }} </div>
+    <div>{{form.dial_lab.label}} : {{form.dial_lab() }}</div>
+    <div>{{form.lab_time.label}} : {{form.lab_time() }}</div>   
+    <div>{{ form.pat_id.label}} : {{form.pat_id() }}</div>    <!-- how to make this a drop down? preferably by patient name-->
+    <div>{{form.dial_id.label}} : {{form.dial_id() }}</div> 
+    {{form.submit()}}
+</form>
+
+{% endblock%}
