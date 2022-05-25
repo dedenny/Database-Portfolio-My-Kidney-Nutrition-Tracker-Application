@@ -175,7 +175,6 @@ def foods_view():
         query = 'SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;'
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
-        print(type(results))
         return render_template("foods.html", foods = results)
 
 @app.route("/lab_results", methods=["POST", "GET"])
@@ -287,3 +286,14 @@ WHERE lab_id = %s;"""
         mysql.connection.commit()
     return redirect(url_for("labs_view"))
 
+db_connection.ping(True)
+
+if __name__ == "__main__":
+    query = 'SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;'
+    cursor = db.execute_query(db_connection=db_connection, query=query)
+    results = cursor.fetchall()
+
+    print(results)
+
+
+    #app.run(host="0.0.0.0", debug=True, port = 12843)

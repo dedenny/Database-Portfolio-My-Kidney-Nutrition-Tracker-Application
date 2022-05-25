@@ -59,12 +59,13 @@ def execute_query(db_connection = None, query = None, query_params = ()):
     # this will actually commit any changes to the database. without this no
     # changes will be committed!
     db_connection.commit();
+    print(cursor)
     return cursor
 
 if __name__ == '__main__':
     print("Executing a sample query on the database using the credentials from db_credentials.py")
     db = connect_to_database()
-    query = "SELECT * from Foods;"
+    query = 'SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;'
     results = execute_query(db, query);
     print(type(results))
     print("Printing results of %s" % query)
