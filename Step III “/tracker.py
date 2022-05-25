@@ -45,7 +45,10 @@ def patients_view():
 
 @app.route("/foods")
 def foods_view():
-    return render_template("foods.html", foods_headings=foods_headings, foods_data=foods_data)
+    query = 'SELECT food_id, name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM foods;'
+    cursor = db.execute_query(db_connection=db_connection, query=query)
+    results = cursor.fetchall()
+    return render_template("foods.html", foods = results)
 
 @app.route("/lab_results")
 def labs_view():

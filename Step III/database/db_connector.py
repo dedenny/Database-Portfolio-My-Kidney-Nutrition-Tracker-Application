@@ -64,8 +64,9 @@ def execute_query(db_connection = None, query = None, query_params = ()):
 if __name__ == '__main__':
     print("Executing a sample query on the database using the credentials from db_credentials.py")
     db = connect_to_database()
-    query = "SELECT * from bsg_people;"
+    query = "SELECT * from Foods;"
     results = execute_query(db, query);
+    print(type(results))
     print("Printing results of %s" % query)
 
     for r in results.fetchall():

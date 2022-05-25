@@ -19,7 +19,7 @@
     <tbody>
         {% for food in foods %}
         <tr>
-            {% for key in foods.keys() %}
+            {% for key in food.keys() %}
             <td>{{food[key]}}</td>
             {% endfor %}
             <td><button type="submit" name="edit" >Edit</button></td>

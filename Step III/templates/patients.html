@@ -26,9 +26,6 @@
             <td>{{person[key]}}</td>
             {% endfor %}
             <td><a href="update_patient"><button type="submit" name="edit" >Edit</button></a></td>
-            <!-- <td><a href = "delete_patient/{{person.patient_id}}">
-                <button type="button" name="delete">Delete</button></td>  
-            </a> -->
             <td><a href="delete_patient/{{person.patient_id}}" class="btn btn-danger">Delete</a></td>
         </tr>
         {% endfor %}

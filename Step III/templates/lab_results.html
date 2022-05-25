@@ -16,8 +16,8 @@
                 {% for key in lab.keys() %}
                 <td class="table__cell">{{ lab[key] }}</td>
                 {% endfor %}      
-                <td><button type="submit" name="edit" >Edit</button></td>
-                <td><button type="submit" name="delete">Delete</button></td>
+                <td><a href="update_lab_results"><button type="submit" name="edit" >Edit</button></a></td>
+                <td><a href="delete_lab_results/{{lab_id}}" class="btn btn-danger">Delete</a></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -57,4 +57,3 @@
     {{form.submit()}}
 </form>
 {% endblock %}
-

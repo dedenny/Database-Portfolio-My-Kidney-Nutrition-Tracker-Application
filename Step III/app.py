@@ -147,8 +147,6 @@ def home():
 def patients_view():
     gender = None
     form = NewPatient()
-
-
     if request.method == "GET":
         query = "SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;"
         cursor = db.execute_query(db_connection=db_connection, query=query)
@@ -177,15 +175,17 @@ def foods_view():
         query = 'SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;'
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
+        print(type(results))
         return render_template("foods.html", foods = results)
 
 @app.route("/lab_results", methods=["POST", "GET"])
 def labs_view():
+    form = NewLabResult()
     if request.method == "GET":
         query = "SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time FROM Lab_Results;"
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
-        return render_template("lab_results.html", lab_data = results)
+        return render_template("lab_results.html",form=form, lab_data = results)
     if request.method == 'POST':
         phos_lab = request.form['phos_lab']
         pot_lab = request.form['pot_lab']
@@ -201,7 +201,7 @@ def labs_view():
 Patients_patient_id,Dialysis_Forms_dialysis_id) VALUES
 (%s, %s, %s, %s, %s
 %s, %s);"""
-        db.execute_query(db_connection = db_connection, query = query)
+        db.execute_query(db_connection = db_connection, query = query, query_parms = (phos_lab,pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id))
         return redirect(url_for('labs_view'))
 
 @app.route("/dialysis_forms", methods=["POST", "GET"])
@@ -210,7 +210,7 @@ def dialysis_forms_view():
         query = 'SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;'
         cursor = db.execute_query(db_connection=db_connection,query=query)
         results = cursor.fetchall()
-        return render_template("dialysis_forms.html", dialysis_data =results)
+        return render_template("dialysis_forms.html", dialysis_data = results)
 
 @app.route("/patients_foods", methods=["POST", "GET"])
 def patients_foods_view():
@@ -224,15 +224,6 @@ def patients_foods_view():
         cursor = db.execute_query(db_connection=db_connection,query=query)
         results = cursor.fetchall()
         return render_template("patients_foods.html", patient_foods=results)
-
-
-# @app.route("/delete_patient/<int:patient_id>", methods = ["GET", "POST"])
-# def delete_patient(patient_id):
-#     query = "DELETE FROM Patients WHERE patient_id = '%s';"
-#     cur = mysql.connection.cursor()
-#     cur.execute(query, (patient_id))
-#     mysql.connection.commit()
-#     return redirect(url_for("patients_view"))
 
 @app.route("/delete_patient/<int:patient_id>")
 def delete_patient(patient_id):
@@ -263,6 +254,36 @@ def update_patient(patient_id=None):
         cur = mysql.connection.cursor()
         cur.execute(query, (last_name, first_name, age, gender, height, weight, pat_id))
         mysql.connection.commit()
-
     return redirect(url_for("patients_view"))
+
+@app.route("/delete_lab_results/<int:lab_id>")
+def delete_lab_results(lab_id):
+    query = "DELETE FROM Lab_Results WHERE lab_id = '%s';"
+    cur = mysql.connection.cursor()
+    cur.execute(query, (lab_id,))
+    mysql.connection.commit()
+    return redirect(url_for("labs_view"))
+
+@app.route("/update_lab_results/<int:lab_id>", methods=["POST","GET"])
+@app.route("/update_lab_results/", methods=["POST","GET"])
+def update_lab_result(lab_id=None):
+    form = EditLabResult()
+    if request.method == "GET":
+        return render_template("edit_lab_results.html", form=form)
+    if request.method == "POST":
+        phos_lab = request.form['phos_lab']
+        pot_lab = request.form['pot_lab']
+        sod_lab = request.form['sod_lab']
+        dial_lab = request.form['dial_lab']
+        lab_time = request.form['lab_time']
+        pat_id = request.form['pat_id']
+        dial_id = request.form['dial_id']
+        query = """UPDATE Lab_Results
+SET phosphorus_lab = %s, potassium_lab = %s, sodium_lab = %s, 
+dialysis_adequacy_lab = %s, lab_results = %s
+WHERE lab_id = %s;"""
+        cur = mysql.connection.cursor()
+        cur.execute(query, (phos_lab,pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id))
+        mysql.connection.commit()
+    return redirect(url_for("labs_view"))
 
