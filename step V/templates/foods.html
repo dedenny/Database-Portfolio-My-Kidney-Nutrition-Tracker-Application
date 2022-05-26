@@ -1,0 +1,59 @@
+{% extends 'base.html' %} {% block title %} Foods {% endblock %} {% block
+content%}
+<h4>Foods Table</h4>
+<table class="table">
+  <tr class="table__header">
+    {% for key in foods[0].keys() %}
+    <th class="table__cell">{{ key }}</th>
+    {% endfor %}
+  </tr>
+  {% for food in foods %}
+  <tr class="table__row">
+    {% for key in food.keys() %}
+    <td class="table__cell">{{food[key]}}</td>
+    {% endfor %}
+    <td><a href="" class="btn btn-secondary">Edit</a></td>
+    <td>
+      <a href="delete_foods/{{ food.food_id }}" class="btn btn-danger"
+        >Delete</a
+      >
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<hr />
+
+<h4>Add New Food</h4>
+<div class="row">
+  <div class="col-lg-7 offset-lg-2 my-5">
+    <form method="POST" action="/foods">
+      <div class="form-group">
+        {{ form.food_name.label }} {{ form.food_name(class="form-control") }}
+      </div>
+      <div class="form-group">
+        {{ form.amount.label }} {{ form.amount(class="form-control") }}
+      </div>
+      <div class="form-group">
+        {{ form.phosphorous_content.label }} {{
+        form.phosphorous_content(class="form-control") }}
+      </div>
+      <div class="form-group">
+        {{ form.sodium_content.label }} {{
+        form.sodium_content(class="form-control") }}
+      </div>
+      <div class="form-group">
+        {{ form.calories.label }} {{ form.calories(class="form-control") }}
+      </div>
+      <div class="form-group">
+        {{ form.potassium_content.label }}
+        {{form.potassium_content(class="form-control") }}
+      </div>
+      <br />
+      {{ form.submit(class="btn btn-primary form-control") }}
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+<!-- Code Citation https://github.com/osu-cs340-ecampus/flask-starter-app, 
+  https://app.pluralsight.com/library/courses/structuring-growing-flask-application/table-of-contents -->

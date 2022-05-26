@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% block title %} Delete Patient {% endblock %} {%
+block content%}
+
+<h1>Remove Food</h1>
+
+<h2>Are you sure you want to remove Dialysis ID: {{ dialysis_id }} ?</h2>
+
+<form method="POST">
+  <button type="submit" class="btn btn-danger">Yes</button>
+  <a
+    class="btn btn-secondary"
+    href="{{ url_for('dialysis_forms_view')}}"
+    role="button"
+    >No</a
+  >
+</form>
+
+{% endblock %}
+
+<!-- Code Citation https://github.com/osu-cs340-ecampus/flask-starter-app, 
+  https://app.pluralsight.com/library/courses/structuring-growing-flask-application/table-of-contents -->
