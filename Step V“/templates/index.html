@@ -1,0 +1,61 @@
+{% extends 'base.html' %} {% block content%}
+<ul>
+  <li>
+    <h3><a href="{{ url_for('patients_view') }}">Patients</a></h3>
+    <h6>Description:</h6>
+    <p>
+      Records the details of the patients. Focusing on patients with end-stage
+      renal disease that are on dialysis. This table functions to add new
+      patients, updates and deletes data.
+    </p>
+  </li>
+  <li>
+    <h3><a href="{{ url_for('foods_view') }}">Foods</a></h3>
+    <h6>Description:</h6>
+    <p>
+      Records the foods the patients consume focusing on minerals/calories that
+      need to be watched in the renal diet. These main minerals include
+      phosphorus, potassium, and sodium. Along with focusing on calories
+      consumed too. Recommended units for potassium, sodium, and phosphorus are
+      mg, and the recommended unit for calories is kcals. This table is for
+      updating, editing, adding new, and deleting foods. Also, has a searchbar
+      tool added as well.
+    </p>
+  </li>
+  <li>
+    <h3><a href="{{ url_for('labs_view') }}">Lab Results</a></h3>
+    <h6>Description:</h6>
+    <p>
+      Records the lab results of the kidney patients that are nutritionally
+      relevant such as phosphorus, potassium and sodium levels. It is also
+      important to monitor adequacy or also known as Kt/v which is a metric that
+      shows how well the patient is dialyzing which is heavily influenced by the
+      type of dialysis they are on since different forms of dialysis have
+      different adequacy metrics to meet. Recommended units for phosphorus is
+      mg/dL, and for sodium and potassium is mEq/L. Able to add new lab results,
+      modify and delete them.
+    </p>
+  </li>
+  <li>
+    <h3><a href="{{ url_for('dialysis_forms_view') }}">Dialysis Forms</a></h3>
+    <h6>Description:</h6>
+    <p>
+      Records the type of dialysis the kidney patient is on; common types of
+      dialysis include in-center, home-hemo, and peritoneal dialysis. The form
+      of dialysis can affect the desired lab results, and different forms of
+      dialysis have different desired adequacy metrics. Able to add new dialysis
+      forms, delete and modify entries.
+    </p>
+  </li>
+  <li>
+    <h3><a href="{{ url_for('patients_foods_view') }}">Patients Foods</a></h3>
+    <h6>Description:</h6>
+    <p>
+      Intersection table between Patients and Foods. This connects the patients
+      to food that they have eaten, and adds a time characteristic for when the
+      patient ate the food.
+    </p>
+  </li>
+</ul>
+
+{% endblock %}
