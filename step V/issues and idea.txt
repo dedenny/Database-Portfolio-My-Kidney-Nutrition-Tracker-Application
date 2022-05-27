@@ -7,3 +7,5 @@ Populate edit forms w/ existing data
 add a filter/sort feature for each table (e.g. filter dialysis forms from least to greatest by any of the columns displayed)
 
 add a button to patients that brings to additional page showing all the food that they've eaten
+
+add some kind of warning for values that are out of safe limits ( or dates that seem wrong)
