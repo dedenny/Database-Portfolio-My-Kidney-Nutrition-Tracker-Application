@@ -121,10 +121,11 @@ class NewPatientFood(FlaskForm):  # why are we using a composite primary key??
     submit = SubmitField("Create New PatientFood")
 
 
-# class EditPatientFood(FlaskForm):
-#     food_id = IntegerField("Food ID", validators=[DataRequired()])
-#     patient_id = IntegerField("Food ID", validators=[DataRequired()])
-#     food_time = DateTimeField("Consumption Time", validators=[DataRequired()])
+class EditPatientFood(FlaskForm):
+    food_id = SelectField("Food", validators=[DataRequired()])
+    patient_id = SelectField("Patient", validators=[DataRequired()])
+    food_time = DateTimeField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
+    submit = SubmitField("Edit Patient-Food")
 
 
 # Routes
@@ -422,7 +423,7 @@ def patients_foods_view():
     form = NewPatientFood()
     if request.method == "GET":
         query = """
-        SELECT Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
+        SELECT Patients_Food.patients_food_id as "id", Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
     Patients_Food.patient_food_time as "Time consumed" from Patients_Food
     JOIN Foods on Patients_Food.Foods_food_id = Foods.food_id
     JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;
@@ -456,17 +457,45 @@ FROM Patients;
         )
         return redirect(url_for("patients_foods_view"))
 
-@app.route("/delete_patients_foods/<int:patient_id>/<int:food_id>", methods=["POST", "GET"])
-def delete_patients_food(patient_id, food_id):
+@app.route("/delete_patients_food/<int:patients_food_id>", methods=["POST", "GET"])
+def delete_patients_food(patients_food_id):
     if request.method == "POST":
-        query = "DELETE FROM Patients_Food WHERE Patients_patient_id = '%s' and Foods_food_id = '%s';"
+        query = "DELETE FROM Patients_Food WHERE patients_food_id = %s;"
         cur = mysql.connection.cursor()
-        cur.execute(query, (patient_id,))
+        cur.execute(query, (patients_food_id,))
         mysql.connection.commit()
         return redirect(url_for("patients_foods_view"))
     else:
-        return render_template("delete_patient.html", patient_id=patient_id, food_id = food_id)
+        return render_template("delete_patient.html", patients_food_id=patients_food_id)
 
+
+@app.route("/update_patients_food/<int:patients_food_id>", methods=["POST","GET"])
+@app.route("/update_patients_food/", methods=["POST","GET"])
+def update_patients_food(patients_food_id=None):
+    form = EditPatientFood()
+    if request.method == "GET":
+        query2 = """
+        SELECT patient_id, 
+CONCAT(first_name, ' ', last_name) as Name 
+FROM Patients;
+        """
+        cursor = db.execute_query(db_connection=db_connection, query=query2)
+        patients_dropdown = cursor.fetchall()  
+        form.patient_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
+        query3 = "SELECT food_id, food_name FROM Foods;"
+        cursor = db.execute_query(db_connection=db_connection, query=query3)
+        foods_dropdown = cursor.fetchall()
+        form.food_id.choices = [(f['food_id'], f['food_name']) for f in foods_dropdown]
+        return render_template("update_patients_food.html", form=form, patients_food_id=patients_food_id)
+    if request.method == "POST":
+        food_id = request.form["food_id"]
+        patient_id = request.form["patient_id"]
+        food_time = request.form["food_time"]
+        query = """UPDATE Patients_Food
+    SET Foods_food_id = %s, Patients_patient_id = %s, patient_food_time = %s
+    WHERE patients_food_id = %s;"""
+        db.execute_query(db_connection=db_connection, query=query, query_params=(food_id, patient_id, food_time, patients_food_id))
+    return redirect(url_for("patients_foods_view"))
 
 # Listener
 
