@@ -1,0 +1,3 @@
+for the lab results date time--very finnicky (need to enter correct time down to seconds, which is unrealistic)
+-either some format using html https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local
+- consider changing the database type (why do we have times down to seconds?  Perhaps just dates would be easier)
