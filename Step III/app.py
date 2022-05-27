@@ -237,7 +237,7 @@ def delete_patient(patient_id):
 def update_patient(patient_id=None):
     form = EditPatient()
     if request.method == "GET":
-        return render_template("edit_patient.html", form=form)
+        return render_template("edit_patient.html", form=form, patient_id=patient_id)
     if request.method == "POST":
         pat_id = request.form['pat_id']
         last_name = request.form['lname']
@@ -250,9 +250,10 @@ def update_patient(patient_id=None):
     SET last_name = %s, first_name = %s, age = %s, gender = %s, 
     height = %s, weight = %s
     WHERE patient_id = %s;"""
-        cur = mysql.connection.cursor()
-        cur.execute(query, (last_name, first_name, age, gender, height, weight, pat_id))
-        mysql.connection.commit()
+        # cur = mysql.connection.cursor()
+        # cur.execute(query, (last_name, first_name, age, gender, height, weight, pat_id))
+        # mysql.connection.commit()
+        db.execute_query(db_connection=db_connection, query=query, query_params=(last_name, first_name, age, gender, height, weight, pat_id))
     return redirect(url_for("patients_view"))
 
 @app.route("/delete_lab_results/<int:lab_id>")
@@ -294,6 +295,3 @@ if __name__ == "__main__":
     results = cursor.fetchall()
 
     print(results)
-
-
-    #app.run(host="0.0.0.0", debug=True, port = 12843)

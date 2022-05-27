@@ -5,7 +5,7 @@ from flask import Flask, json, redirect, render_template, request, url_for
 from flask_mysqldb import MySQL
 from flask_wtf import FlaskForm
 from jmespath import search
-from wtforms import StringField, SubmitField, IntegerField, FloatField, DateTimeField, SelectField
+from wtforms import StringField, SubmitField, IntegerField, FloatField, SelectField, DateTimeField
 from wtforms.validators import DataRequired
 from flask_bootstrap import Bootstrap
 
@@ -14,6 +14,7 @@ import database.db_connector as db
 # Configuration
 
 app = Flask(__name__)
+bootstarp = Bootstrap(app)
 mysql = MySQL(app)
 db_connection = db.connect_to_database()
 
@@ -55,7 +56,7 @@ class NewLabResult(FlaskForm):
     pot_lab = FloatField("Potassium Lab")
     sod_lab = IntegerField("Sodium Lab")
     dial_lab = FloatField("Dialysis Adequacy Lab")
-    lab_time = DateTimeField("Lab Results Time")
+    lab_time = DateTimeField("Lab Results Time", format='%Y-%m-%d %H:%M:%S')
     pat_id = SelectField(
         "Patient Select"
     )  # how to show this as a list of existing patients? Ideally by name rather than id
@@ -178,6 +179,29 @@ def delete_patient(patient_id):
     else:
         return render_template("delete_patient.html", patient_id=patient_id)
 
+@app.route("/update_patient/<int:patient_id>", methods=["POST","GET"])
+@app.route("/update_patient/", methods=["POST","GET"])
+def update_patient(patient_id=None):
+    form = EditPatient()
+    if request.method == "GET":
+        return render_template("update_patient.html", form=form, patient_id=patient_id)
+    if request.method == "POST":
+        pat_id = patient_id
+        last_name = request.form['lname']
+        first_name = request.form['fname']
+        age = request.form['age']
+        gender = request.form['gender']
+        height = request.form['height']
+        weight = request.form['weight']
+        query = """UPDATE Patients
+    SET last_name = %s, first_name = %s, age = %s, gender = %s, 
+    height = %s, weight = %s
+    WHERE patient_id = %s;"""
+        #cur = mysql.connection.cursor()
+        #cur.execute(query, (last_name, first_name, age, gender, height, weight, pat_id))
+        #mysql.connection.commit()
+        db.execute_query(db_connection=db_connection, query=query, query_params=(last_name, first_name, age, gender, height, weight, pat_id))
+    return redirect(url_for("patients_view"))
 
 # Foods
 
@@ -231,6 +255,20 @@ def labs_view():
         query = "SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time FROM Lab_Results;"
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
+        query2 = """
+        SELECT patient_id, 
+CONCAT(first_name, ' ', last_name) as Name 
+FROM Patients;
+        """
+        cursor = db.execute_query(db_connection=db_connection, query=query2)
+        patients_dropdown = cursor.fetchall()   
+        # patients_dropdown is a tuple consisting of dictionaries:
+        # for example: ({'patient_id': 1, 'Name': 'Arlene Smith'}, {'patient_id': 2, 'Name': 'f f'}, {'patient_id': 3, 'Name': 'Kayla Harrison'}, {'patient_id': 4, 'Name': 'Henry Jackson'}, {'patient_id': 10, 'Name': '6 65'})
+        form.pat_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
+        query3 = "SELECT dialysis_id, name FROM Dialysis_Forms;"
+        cursor = db.execute_query(db_connection=db_connection, query=query3)
+        dialyis_dropdown = cursor.fetchall()
+        form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
         return render_template("lab_results.html", form=form, lab_data=results)
     if request.method == "POST":
         phos_lab = request.form["phos_lab"]
@@ -243,14 +281,12 @@ def labs_view():
         for item in (phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id):
             if item == "":
                 item = "NULL"
-        query = """INSERT INTO lab_results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time
-Patients_patient_id,Dialysis_Forms_dialysis_id) VALUES
-(%s, %s, %s, %s, %s
-%s, %s);"""
+        query = """INSERT INTO Lab_Results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time, 
+Patients_patient_id, Dialysis_Forms_dialysis_id) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
         db.execute_query(
             db_connection=db_connection,
             query=query,
-            query_parms=(phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id),
+            query_params=(phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id),
         )
         return redirect(url_for("labs_view"))
 
@@ -319,6 +355,10 @@ def patients_foods_view():
     """
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
+        query_foods = "SELECT food_id, food_name FROM Foods;"
+        cursor = db.execute_query(db_connection=db_connection, query=query_foods)
+        foods_dropdown = cursor.fetchall()
+        form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
         return render_template("patients_foods.html", form=form, patient_foods=results)
     if request.method == "POST":
         food_id = request.form["food_id"]
@@ -343,3 +383,5 @@ if __name__ == "__main__":
 
 # Code Citation
 # https://github.com/osu-cs340-ecampus/flask-starter-app#delete
+# https://wtforms.readthedocs.io/en/3.0.x/
+# Grinberg, M. (2018). Flask web development: developing web applications with python. " O&#x27;Reilly Media, Inc."

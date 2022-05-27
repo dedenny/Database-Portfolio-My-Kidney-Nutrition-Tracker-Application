@@ -81,10 +81,15 @@ SELECT dialysis_id, name FROM Dialysis_Forms
 SELECT dialysis_id, location_type FROM Dialysis_forms
 
 --get patients to populate drop down for patients
-SELECT patient_id, CONCAT(first_name, ' ', last_name) as Name FROM Patients;
+SELECT patient_id, 
+CONCAT(first_name, ' ', last_name) as Name 
+FROM Patients;
 
 --get foods to populate foods dropdown
 SELECT food_id, food_name FROM Foods;
+
+--get types of dialysis and their id for the lab_results dropdown
+SELECT dialysis_id, name FROM Dialysis_Forms;
 
 /*
 Update queries:
@@ -142,3 +147,15 @@ AND DATE(patient_food_time) = :date_from_patients_food_page;
 SELECT Patients_Food.Foods_food_id,Foods.food_name, DATE(Patients_food.patient_food_time) FROM Patients_Food 
 JOIN Foods ON Patients_food.Foods_food_id = Foods.food_id
 WHERE patients_patient_id = :patients_id_from_patients_food_page ;
+
+
+INSERT INTO Lab_Results 
+(phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time,
+Patients_patient_id,Dialysis_Forms_dialysis_id) 
+VALUES
+('.4', 
+'.4', 
+'4', 
+'.4', 
+'2022-05-11 10:19:25', 
+'10', '1');
