@@ -111,6 +111,7 @@ class EditDialysisForm(FlaskForm):
     name = StringField("Name of Dialysis Type", validators=[DataRequired()])
     location_type = StringField("Location Type", validators=[DataRequired()])
     adequacy_standard = FloatField("Adequacy Standard", validators=[DataRequired()])
+    submit = SubmitField("Edit Dialysis Type")
 
 
 class NewPatientFood(FlaskForm):  # why are we using a composite primary key??
@@ -399,24 +400,19 @@ def delete_dialysis_form(dialysis_id):
 
 @app.route("/update_dialysis_type/<int:dialysis_id>", methods=["POST","GET"])
 @app.route("/update_dialysis_type/", methods=["POST","GET"])
-def update_food(food_id=None):
-    form = EditFood()
+def update_dialysis_type(dialysis_id=None):
+    form = EditDialysisForm()
     if request.method == "GET":
-        return render_template("update_food.html", form=form, food_id=food_id)
+        return render_template("update_dialysis_type.html", form=form, dialysis_id=dialysis_id)
     if request.method == "POST":
-        food_name = request.form["food_name"]
-        amount = request.form["amount"]
-        phosphorous_content = request.form["phosphorous_content"]
-        sodium_content = request.form["sodium_content"]
-        calories = request.form["calories"]
-        potassium_content = request.form["potassium_content"]
-        amount = request.form["amount"]
-        query = """UPDATE Foods
-    SET food_name = %s, phosphorous_content = %s, sodium_content = %s, calories = %s, 
-    potassium_content = %s, amount = %s
-    WHERE food_id = %s;"""
-        db.execute_query(db_connection=db_connection, query=query, query_params=(food_name, phosphorous_content, sodium_content, calories, potassium_content, amount, food_id))
-    return redirect(url_for("foods_view"))
+        name = request.form["name"]
+        location_type = request.form["location_type"]
+        adequacy_standard = request.form["adequacy_standard"]
+        query = """UPDATE Dialysis_Forms
+    SET name = %s, location_type = %s, adequacy_standard = %s
+    WHERE dialysis_id = %s;"""
+        db.execute_query(db_connection=db_connection, query=query, query_params=(name, location_type, adequacy_standard, dialysis_id))
+    return redirect(url_for("dialysis_forms_view"))
 
 # Patient Foods
 

@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% import "bootstrap/wtf.html" as wtf %}
-{% block title %} Edit Food {% endblock %}
+{% block title %} Edit Dialysis Type {% endblock %}
 {% block content%}
 
-<h4>Edit Food</h4>
+<h4>Edit Dialysis Type</h4>
 
 <div class="row">
   <div class="col-lg-7 offset-lg-2 my-5">
-    <form method="POST" action="/dialysis_type/{{ dialysis_id }}">
+    <form method="POST" action="/update_dialysis_type/{{ dialysis_id }}">
         <div class="form-group">
           {{ form.name.label }} {{ form.name(class="form-control") }}
         </div>
