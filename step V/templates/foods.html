@@ -12,7 +12,7 @@ content%}
     {% for key in food.keys() %}
     <td class="table__cell">{{food[key]}}</td>
     {% endfor %}
-    <td><a href="" class="btn btn-secondary">Edit</a></td>
+    <td><a href="update_food/{{food.food_id}}" class="btn btn-secondary">Edit</a></td>
     <td>
       <a href="delete_foods/{{ food.food_id }}" class="btn btn-danger"
         >Delete</a

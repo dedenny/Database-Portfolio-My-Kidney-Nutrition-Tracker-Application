@@ -1,5 +1,6 @@
-{% extends 'base.html' %} {% block title %} Patients Foods {% endblock %} {%
-block content%}
+{% extends 'base.html' %} 
+{% block title %} Patients Foods {% endblock %} 
+{% block content%}
 
 <h4>Patients Food Table</h4>
 
@@ -17,6 +18,11 @@ block content%}
     <td>
       <a href="" class="btn btn-secondary">Edit</a>
     </td>
+    <td>
+      <a href="delete_patients_food/{{patient_food.patient_id}}/{{patient_food.food_id}}" class="btn btn-danger"
+        >Delete</a
+      >
+    </td>
   </tr>
   {% endfor %}
 </table>
@@ -24,7 +30,7 @@ block content%}
 <h4>WIP - Add New Food</h4>
 <div class="row">
   <div class="col-lg-7 offset-lg-2 my-5">
-    <form method="POST" action="/foods">
+    <form method="POST" action="/patients_foods">
       <div class="form-group">
         {{ form.food_id.label }} {{ form.food_id(class="form-control") }}
       </div>

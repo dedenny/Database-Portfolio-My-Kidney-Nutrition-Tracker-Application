@@ -78,9 +78,9 @@ class EditLabResult(FlaskForm):
 
 class NewFood(FlaskForm):
     food_name = StringField("Food Name", validators=[DataRequired()])
-    amount = IntegerField("Serving Size")
+    amount = IntegerField("Serving Size (grams)")
     phosphorous_content = IntegerField("Phosphorous Content")  # need to add units
-    sodium_content = IntegerField("Phosphorous Content")
+    sodium_content = IntegerField("Sodium Content")
     calories = IntegerField("Calories")
     potassium_content = IntegerField("Potassium Content")
     submit = SubmitField("Create New Food")
@@ -96,6 +96,7 @@ class EditFood(FlaskForm):
     calories = IntegerField("Calories")
     potassium_content = IntegerField("Potassium Content")
     amount = IntegerField("Serving Size")
+    submit = SubmitField("Update Food")
 
 
 class NewDialysisForm(FlaskForm):
@@ -113,9 +114,9 @@ class EditDialysisForm(FlaskForm):
 
 
 class NewPatientFood(FlaskForm):  # why are we using a composite primary key??
-    food_id = IntegerField("Food ID", validators=[DataRequired()])
-    patient_id = IntegerField("Patient ID", validators=[DataRequired()])
-    food_time = DateTimeField("Consumption Time", validators=[DataRequired()])
+    food_id = SelectField("Food ID", validators=[DataRequired()])
+    patient_id = SelectField("Patient ID", validators=[DataRequired()])
+    food_time = DateTimeField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
     submit = SubmitField("Create New PatientFood")
 
 
@@ -244,6 +245,26 @@ def delete_foods(food_id):
     else:
         return render_template("delete_foods.html", food_id=food_id)
 
+@app.route("/update_food/<int:food_id>", methods=["POST","GET"])
+@app.route("/update_food/", methods=["POST","GET"])
+def update_food(food_id=None):
+    form = EditFood()
+    if request.method == "GET":
+        return render_template("update_food.html", form=form, food_id=food_id)
+    if request.method == "POST":
+        food_name = request.form["food_name"]
+        amount = request.form["amount"]
+        phosphorous_content = request.form["phosphorous_content"]
+        sodium_content = request.form["sodium_content"]
+        calories = request.form["calories"]
+        potassium_content = request.form["potassium_content"]
+        amount = request.form["amount"]
+        query = """UPDATE Foods
+    SET food_name = %s, phosphorous_content = %s, sodium_content = %s, calories = %s, 
+    potassium_content = %s, amount = %s
+    WHERE food_id = %s;"""
+        db.execute_query(db_connection=db_connection, query=query, query_params=(food_name, phosphorous_content, sodium_content, calories, potassium_content, amount, food_id))
+    return redirect(url_for("foods_view"))
 
 # Lab Results
 
@@ -358,20 +379,39 @@ def patients_foods_view():
         query_foods = "SELECT food_id, food_name FROM Foods;"
         cursor = db.execute_query(db_connection=db_connection, query=query_foods)
         foods_dropdown = cursor.fetchall()
-        form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
+        form.food_id.choices = [(f['food_id'],f['food_name']) for f in foods_dropdown]
+        query2 = """
+        SELECT patient_id, 
+CONCAT(first_name, ' ', last_name) as Name 
+FROM Patients;
+        """
+        cursor = db.execute_query(db_connection=db_connection, query=query2)
+        patients_dropdown = cursor.fetchall()   
+        form.patient_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
         return render_template("patients_foods.html", form=form, patient_foods=results)
     if request.method == "POST":
         food_id = request.form["food_id"]
         patient_id = request.form["patient_id"]
         food_time = request.form["food_time"]
 
-        query = "INSERT INTO Dialysis_Forms (food_id, patient_id, food_time) VALUES (%s, %s, %s);"
+        query = "INSERT INTO Patients_Food (Foods_food_id, Patients_patient_id, patient_food_time) VALUES (%s, %s, %s);"
         db.execute_query(
             db_connection=db_connection,
             query=query,
             query_params=(food_id, patient_id, food_time),
         )
         return redirect(url_for("patients_foods_view"))
+
+@app.route("/delete_patients_foods/<int:patient_id>/<int:food_id>", methods=["POST", "GET"])
+def delete_patients_food(patient_id, food_id):
+    if request.method == "POST":
+        query = "DELETE FROM Patients_Food WHERE Patients_patient_id = '%s' and Foods_food_id = '%s';"
+        cur = mysql.connection.cursor()
+        cur.execute(query, (patient_id,))
+        mysql.connection.commit()
+        return redirect(url_for("patients_foods_view"))
+    else:
+        return render_template("delete_patient.html", patient_id=patient_id, food_id = food_id)
 
 
 # Listener

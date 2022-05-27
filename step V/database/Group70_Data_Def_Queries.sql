@@ -157,12 +157,13 @@ CREATE TABLE `Patients_Food` (
 --
 -- Dumping data for table `Patients_Food`
 --
-
+SET FOREIGN_KEY_CHECKS = 0;
 LOCK TABLES `Patients_Food` WRITE;
 /*!40000 ALTER TABLE `Patients_Food` DISABLE KEYS */;
 INSERT INTO `Patients_Food` VALUES (1,1,5,'2022-05-16 10:22:28'),(2, 2,4,'2022-05-11 15:07:55'),(3, 3,3,'2022-05-15 12:08:12'),(4,4,2,'2022-05-20 18:32:04'),(5,5,1,'2022-05-10 15:40:11');
 /*!40000 ALTER TABLE `Patients_Food` ENABLE KEYS */;
 UNLOCK TABLES;
+SET FOREIGN_KEY_CHECKS = 1;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -180,4 +181,3 @@ SET FOREIGN_KEY_CHECKS = 0;
 drop tables dialysis_forms, foods, patients, patients_food, lab_results;
 SET FOREIGN_KEY_CHECKS = 1;
 */
-SET FOREIGN_KEY_CHECKS = 1;
