@@ -143,10 +143,11 @@ DROP TABLE IF EXISTS `Patients_Food`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `Patients_Food` (
+  `patients_food_id` int(11) NOT NULL AUTO_INCREMENT,
   `Foods_food_id` int(10) unsigned NOT NULL,
   `Patients_patient_id` int(11) NOT NULL,
   `patient_food_time` datetime NOT NULL,
-  PRIMARY KEY (`Foods_food_id`,`Patients_patient_id`),
+  PRIMARY KEY (`patients_food_id`),
   KEY `fk_Food_has_Patients_Patients1_idx` (`Patients_patient_id`),
   KEY `fk_Food_has_Patients_Food_idx` (`Foods_food_id`),
   CONSTRAINT `fk_Food_has_Patients_Food` FOREIGN KEY (`Foods_food_id`) REFERENCES `Foods` (`food_id`) ON DELETE CASCADE ON UPDATE CASCADE,

@@ -15,7 +15,7 @@
         {% for key in lab.keys() %}
         <td class="table__cell">{{lab[key]}}</td>
         {% endfor %}
-        <td><a href="" class="btn btn-secondary">Edit</a></td>
+        <td><a href="update_lab_results/{{ lab.lab_id }}" class="btn btn-secondary">Edit</a></td>
         <td><a href="delete_labs/{{ lab.lab_id }}" class="btn btn-danger">Delete</a></td>
         </tr>
         {% endfor %}

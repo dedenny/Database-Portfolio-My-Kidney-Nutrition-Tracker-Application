@@ -70,7 +70,7 @@ class EditLabResult(FlaskForm):
     pot_lab = FloatField("Potassium Lab")
     sod_lab = IntegerField("Sodium Lab")
     dial_lab = FloatField("Dialysis Adequacy Lab")
-    lab_time = DateTimeField("Lab Results Time")
+    lab_time = DateTimeField("Lab Results Time", format='%Y-%m-%d %H:%M:%S')
     pat_id = SelectField("Patient Select")
     dial_id = SelectField("Dialysis Type Select")
     submit = SubmitField("Edit Lab Result")
@@ -273,7 +273,12 @@ def update_food(food_id=None):
 def labs_view():
     form = NewLabResult()
     if request.method == "GET":
-        query = "SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time FROM Lab_Results;"
+        query = """
+        SELECT Lab_Results.lab_id, CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name", Dialysis_Forms.name as "Dialysis Type",
+Lab_Results.phosphorus_lab as "Phosphorous Lab", Lab_Results.potassium_lab as "Potassium Lab", Lab_Results.sodium_lab as "Sodium Lab", 
+Lab_Results.dialysis_adequacy_lab as "Dialysis Adequacy", Lab_Results.lab_results_time as "Time" FROM Lab_Results
+JOIN Patients on Lab_Results.Patients_patient_id = Patients.patient_id 
+JOIN Dialysis_Forms on Lab_Results.Dialysis_Forms_dialysis_id = Dialysis_Forms.dialysis_id;"""
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
         query2 = """
@@ -323,6 +328,38 @@ def delete_labs(lab_id):
     else:
         return render_template("delete_labs.html", lab_id=lab_id)
 
+@app.route("/update_lab_results/<int:lab_id>", methods=["POST","GET"])
+@app.route("/update_lab_results/", methods=["POST","GET"])
+def update_lab_result(lab_id=None):
+    form = EditLabResult()
+    if request.method == "GET":
+        query2 = """
+        SELECT patient_id, 
+CONCAT(first_name, ' ', last_name) as Name 
+FROM Patients;
+        """
+        cursor = db.execute_query(db_connection=db_connection, query=query2)
+        patients_dropdown = cursor.fetchall()  
+        form.pat_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
+        query3 = "SELECT dialysis_id, name FROM Dialysis_Forms;"
+        cursor = db.execute_query(db_connection=db_connection, query=query3)
+        dialyis_dropdown = cursor.fetchall()
+        form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
+        return render_template("update_lab_results.html", form=form, lab_id=lab_id)
+    if request.method == "POST":
+        phos_lab = request.form["phos_lab"]
+        pot_lab = request.form["pot_lab"]
+        sod_lab = request.form["sod_lab"]
+        dial_lab = request.form["dial_lab"]
+        lab_time = request.form["lab_time"]
+        pat_id = request.form["pat_id"]
+        dial_id = request.form["dial_id"]
+        query = """UPDATE Lab_Results
+    SET phosphorus_lab = %s, potassium_lab = %s, sodium_lab = %s, dialysis_adequacy_lab = %s, 
+    Lab_Results_time = %s, Patients_patient_id = %s, Dialysis_Forms_dialysis_id = %s
+    WHERE lab_id = %s;"""
+        db.execute_query(db_connection=db_connection, query=query, query_params=(phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id, lab_id))
+    return redirect(url_for("labs_view"))
 
 # Dialysis Forms
 
@@ -360,6 +397,26 @@ def delete_dialysis_form(dialysis_id):
     else:
         return render_template("delete_dialysis_form.html", dialysis_id=dialysis_id)
 
+@app.route("/update_dialysis_type/<int:dialysis_id>", methods=["POST","GET"])
+@app.route("/update_dialysis_type/", methods=["POST","GET"])
+def update_food(food_id=None):
+    form = EditFood()
+    if request.method == "GET":
+        return render_template("update_food.html", form=form, food_id=food_id)
+    if request.method == "POST":
+        food_name = request.form["food_name"]
+        amount = request.form["amount"]
+        phosphorous_content = request.form["phosphorous_content"]
+        sodium_content = request.form["sodium_content"]
+        calories = request.form["calories"]
+        potassium_content = request.form["potassium_content"]
+        amount = request.form["amount"]
+        query = """UPDATE Foods
+    SET food_name = %s, phosphorous_content = %s, sodium_content = %s, calories = %s, 
+    potassium_content = %s, amount = %s
+    WHERE food_id = %s;"""
+        db.execute_query(db_connection=db_connection, query=query, query_params=(food_name, phosphorous_content, sodium_content, calories, potassium_content, amount, food_id))
+    return redirect(url_for("foods_view"))
 
 # Patient Foods
 
@@ -389,6 +446,7 @@ FROM Patients;
         patients_dropdown = cursor.fetchall()   
         form.patient_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
         return render_template("patients_foods.html", form=form, patient_foods=results)
+        
     if request.method == "POST":
         food_id = request.form["food_id"]
         patient_id = request.form["patient_id"]

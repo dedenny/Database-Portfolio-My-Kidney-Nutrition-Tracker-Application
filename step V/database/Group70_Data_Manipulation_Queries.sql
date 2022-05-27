@@ -8,7 +8,11 @@ SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patie
 SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;
 
 --Populate Lab Results page
-SELECT lab_id, phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time FROM Lab_Results;
+SELECT Lab_Results.lab_id, CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name", Dialysis_Forms.name as "Dialysis Type",
+Lab_Results.phosphorus_lab as "Phosphorous Lab", Lab_Results.potassium_lab as "Potassium Lab", Lab_Results.sodium_lab as "Sodium Lab", 
+Lab_Results.dialysis_adequacy_lab as "Dialysis Adequacy", Lab_Results.lab_results_time as "Time" FROM Lab_Results
+JOIN Patients on Lab_Results.Patients_patient_id = Patients.patient_id 
+JOIN Dialysis_Forms on Lab_Results.Dialysis_Forms_dialysis_id = Dialysis_Forms.dialysis_id;
 
 --Populate Dialysis Forms page
 SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;
