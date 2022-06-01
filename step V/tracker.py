@@ -1,5 +1,4 @@
 import os
-import re
 
 from flask import Flask, json, redirect, render_template, request, url_for
 from flask_mysqldb import MySQL
@@ -127,6 +126,20 @@ class EditPatientFood(FlaskForm):
     food_time = DateTimeField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
     submit = SubmitField("Edit Patient-Food")
 
+def search_bar(sample_tuple, search_term):
+    """
+    Recieves a tuple containing dictionary items and a search_term
+    Returns a tuple containing dictionary items that have a value that matches the search_term
+    """
+    search_term = str(search_term)
+    res = list()
+    for x_dict in sample_tuple:
+        for x in x_dict.values():
+            if search_term in str(x):
+                res.append(x_dict)
+                break
+
+    return tuple(res)
 
 # Routes
 
@@ -141,12 +154,15 @@ def home():
 
 @app.route("/patients", methods=["POST", "GET"])
 def patients_view():
+    q = request.args.get('q')
     gender = None
     form = NewPatient()
     if request.method == "GET":
         query = "SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;"
         cursor = db.execute_query(db_connection=db_connection, query=query)
-        results = cursor.fetchall()
+        results = cursor.fetchall()  # results should be a tuple containing dictionary items
+        if q:
+            results = search_bar(results,q)
         return render_template("patients.html", form=form, patients=results)
     if request.method == "POST":
         last_name = request.form["lname"]
