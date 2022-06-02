@@ -154,6 +154,7 @@ def home():
 
 @app.route("/patients", methods=["POST", "GET"])
 def patients_view():
+    db_connection.ping(True)
     q = request.args.get('q')
     gender = None
     form = NewPatient()
@@ -189,6 +190,7 @@ def patients_view():
 
 @app.route("/delete_patient/<int:patient_id>", methods=["POST", "GET"])
 def delete_patient(patient_id):
+    db_connection.ping(True)
     if request.method == "POST":
         query = "DELETE FROM Patients WHERE patient_id = '%s';"
         cur = mysql.connection.cursor()
@@ -201,6 +203,7 @@ def delete_patient(patient_id):
 @app.route("/update_patient/<int:patient_id>", methods=["POST","GET"])
 @app.route("/update_patient/", methods=["POST","GET"])
 def update_patient(patient_id=None):
+    db_connection.ping(True)
     form = EditPatient()
     if request.method == "GET":
         return render_template("update_patient.html", form=form, patient_id=patient_id)
@@ -227,6 +230,7 @@ def update_patient(patient_id=None):
 
 @app.route("/foods", methods=["POST", "GET"])
 def foods_view():
+    db_connection.ping(True)
     q = request.args.get('q')
     form = NewFood()
     if request.method == "GET":
@@ -257,6 +261,7 @@ def foods_view():
 
 @app.route("/delete_foods/<int:food_id>", methods=["POST", "GET"])
 def delete_foods(food_id):
+    db_connection.ping(True)
     if request.method == "POST":
         query = "DELETE FROM Foods WHERE food_id = '%s';"
         cur = mysql.connection.cursor()
@@ -269,6 +274,7 @@ def delete_foods(food_id):
 @app.route("/update_food/<int:food_id>", methods=["POST","GET"])
 @app.route("/update_food/", methods=["POST","GET"])
 def update_food(food_id=None):
+    db_connection.ping(True)
     form = EditFood()
     if request.method == "GET":
         return render_template("update_food.html", form=form, food_id=food_id)
@@ -292,6 +298,7 @@ def update_food(food_id=None):
 
 @app.route("/lab_results", methods=["POST", "GET"])
 def labs_view():
+    db_connection.ping(True)
     q = request.args.get('q')
     form = NewLabResult()
     if request.method == "GET":
@@ -343,6 +350,7 @@ Patients_patient_id, Dialysis_Forms_dialysis_id) VALUES (%s, %s, %s, %s, %s, %s,
 
 @app.route("/delete_labs/<int:lab_id>", methods=["POST", "GET"])
 def delete_labs(lab_id):
+    db_connection.ping(True)
     if request.method == "POST":
         query = "DELETE FROM Lab_Results WHERE lab_id = '%s';"
         cur = mysql.connection.cursor()
@@ -355,6 +363,7 @@ def delete_labs(lab_id):
 @app.route("/update_lab_results/<int:lab_id>", methods=["POST","GET"])
 @app.route("/update_lab_results/", methods=["POST","GET"])
 def update_lab_result(lab_id=None):
+    db_connection.ping(True)
     form = EditLabResult()
     if request.method == "GET":
         query2 = """
@@ -390,6 +399,7 @@ FROM Patients;
 
 @app.route("/dialysis_forms", methods=["POST", "GET"])
 def dialysis_forms_view():
+    db_connection.ping(True)
     q = request.args.get('q')
     form = NewDialysisForm()
     if request.method == "GET":
@@ -415,6 +425,7 @@ def dialysis_forms_view():
 
 @app.route("/delete_dialysis_form/<int:dialysis_id>", methods=["POST", "GET"])
 def delete_dialysis_form(dialysis_id):
+    db_connection.ping(True)
     if request.method == "POST":
         query = "DELETE FROM Dialysis_Forms WHERE dialysis_id = '%s';"
         cur = mysql.connection.cursor()
@@ -427,6 +438,7 @@ def delete_dialysis_form(dialysis_id):
 @app.route("/update_dialysis_type/<int:dialysis_id>", methods=["POST","GET"])
 @app.route("/update_dialysis_type/", methods=["POST","GET"])
 def update_dialysis_type(dialysis_id=None):
+    db_connection.ping(True)
     form = EditDialysisForm()
     if request.method == "GET":
         return render_template("update_dialysis_type.html", form=form, dialysis_id=dialysis_id)
@@ -445,11 +457,12 @@ def update_dialysis_type(dialysis_id=None):
 
 @app.route("/patients_foods", methods=["POST", "GET"])
 def patients_foods_view():
+    db_connection.ping(True)
     q = request.args.get('q')
     form = NewPatientFood()
     if request.method == "GET":
         query = """
-        SELECT Patients_Food.patients_food_id as "id", Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
+        SELECT Patients_Food.patient_food_id as "id", Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
     Patients_Food.patient_food_time as "Time consumed" from Patients_Food
     JOIN Foods on Patients_Food.Foods_food_id = Foods.food_id
     JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;
@@ -487,6 +500,7 @@ FROM Patients;
 
 @app.route("/delete_patients_food/<int:patients_food_id>", methods=["POST", "GET"])
 def delete_patients_food(patients_food_id):
+    db_connection.ping(True)
     if request.method == "POST":
         query = "DELETE FROM Patients_Food WHERE patients_food_id = %s;"
         cur = mysql.connection.cursor()
@@ -500,6 +514,7 @@ def delete_patients_food(patients_food_id):
 @app.route("/update_patients_food/<int:patients_food_id>", methods=["POST","GET"])
 @app.route("/update_patients_food/", methods=["POST","GET"])
 def update_patients_food(patients_food_id=None):
+    db_connection.ping(True)
     form = EditPatientFood()
     if request.method == "GET":
         query2 = """

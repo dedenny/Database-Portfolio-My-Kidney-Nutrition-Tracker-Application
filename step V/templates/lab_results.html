@@ -2,8 +2,10 @@
 {% block title %} Lab Results {% endblock %}
 
 {% block content %}
-{% if lab_data[0] is defined %}
+
+
 <h4>Lab Results</h4>
+{% if lab_data[0] is defined %}
     <table class="table">
         <tr class="table__header">
         {% for key in lab_data[0].keys() %}

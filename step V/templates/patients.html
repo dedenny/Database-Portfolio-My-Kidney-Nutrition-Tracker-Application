@@ -1,9 +1,6 @@
 {% extends 'base.html' %} {% block title %} Patients {% endblock %} {% block
 content%}
-<form>
-  <input type="search" placeholder="search" name="q">
-  <button type="submit">Search</button>
-</form>
+
 <h4>Patients Table</h4>
 {% if patients[0] is defined %}
 <table class="table">
