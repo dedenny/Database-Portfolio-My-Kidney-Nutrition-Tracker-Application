@@ -5,6 +5,7 @@ content%}
   <button type="submit">Search</button>
 </form>
 <h4>Patients Table</h4>
+{% if patients[0] is defined %}
 <table class="table">
   <tr class="table__header">
     {% for key in patients[0].keys() %}
@@ -29,6 +30,9 @@ content%}
   </tr>
   {% endfor %}
 </table>
+{% else %}
+<div>No data found :(</div>
+{% endif %}
 <hr />
 
 <h4>Add New Patient</h4>

@@ -227,6 +227,7 @@ def update_patient(patient_id=None):
 
 @app.route("/foods", methods=["POST", "GET"])
 def foods_view():
+    q = request.args.get('q')
     form = NewFood()
     if request.method == "GET":
         query = "SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;"
@@ -289,6 +290,7 @@ def update_food(food_id=None):
 
 @app.route("/lab_results", methods=["POST", "GET"])
 def labs_view():
+    q = request.args.get('q')
     form = NewLabResult()
     if request.method == "GET":
         query = """
@@ -384,6 +386,7 @@ FROM Patients;
 
 @app.route("/dialysis_forms", methods=["POST", "GET"])
 def dialysis_forms_view():
+    q = request.args.get('q')
     form = NewDialysisForm()
     if request.method == "GET":
         query = "SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;"
@@ -436,6 +439,7 @@ def update_dialysis_type(dialysis_id=None):
 
 @app.route("/patients_foods", methods=["POST", "GET"])
 def patients_foods_view():
+    q = request.args.get('q')
     form = NewPatientFood()
     if request.method == "GET":
         query = """
@@ -514,7 +518,15 @@ FROM Patients;
     return redirect(url_for("patients_foods_view"))
 
 # Listener
-
+query = """
+SELECT Lab_Results.lab_id, CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name", Dialysis_Forms.name as "Dialysis Type",
+Lab_Results.phosphorus_lab as "Phosphorous Lab", Lab_Results.potassium_lab as "Potassium Lab", Lab_Results.sodium_lab as "Sodium Lab", 
+Lab_Results.dialysis_adequacy_lab as "Dialysis Adequacy", Lab_Results.Lab_Results_time as "Time" FROM Lab_Results
+JOIN Patients on Lab_Results.Patients_patient_id = Patients.patient_id 
+JOIN Dialysis_Forms on Lab_Results.Dialysis_Forms_dialysis_id = Dialysis_Forms.dialysis_id;"""
+cursor = db.execute_query(db_connection=db_connection, query=query)
+results = cursor.fetchall()
+print(results)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 9112))
     app.run(port=port, debug=True)
