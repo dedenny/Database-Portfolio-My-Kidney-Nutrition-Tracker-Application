@@ -2,7 +2,7 @@
 block content%}
 
 <h4>Dialysis Forms Table</h4>
-
+{% if dialysis_data[0] is defined %}
 <table class="table">
   <tr class="table__header">
     {% for key in dialysis_data[0].keys() %}
@@ -27,6 +27,9 @@ block content%}
   </tr>
   {% endfor %}
 </table>
+{% else %}
+<div>No data found :(</div>
+{% endif %}
 <hr />
 
 <h4>Add New Dialysis Form</h4>

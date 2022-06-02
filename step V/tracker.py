@@ -233,6 +233,8 @@ def foods_view():
         query = "SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;"
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
+        if q:
+            results = search_bar(results,q)
         return render_template("foods.html", form=form, foods=results)
 
     if request.method == "POST":
@@ -315,6 +317,8 @@ FROM Patients;
         cursor = db.execute_query(db_connection=db_connection, query=query3)
         dialyis_dropdown = cursor.fetchall()
         form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
+        if q:
+            results = search_bar(results,q)
         return render_template("lab_results.html", form=form, lab_data=results)
     if request.method == "POST":
         phos_lab = request.form["phos_lab"]
@@ -392,6 +396,8 @@ def dialysis_forms_view():
         query = "SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;"
         cursor = db.execute_query(db_connection=db_connection, query=query)
         results = cursor.fetchall()
+        if q:
+            results = search_bar(results,q)
         return render_template("dialysis_forms.html", form=form, dialysis_data=results)
     if request.method == "POST":
         name = request.form["name"]
@@ -462,6 +468,8 @@ FROM Patients;
         cursor = db.execute_query(db_connection=db_connection, query=query2)
         patients_dropdown = cursor.fetchall()   
         form.patient_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
+        if q:
+            results = search_bar(results,q)
         return render_template("patients_foods.html", form=form, patient_foods=results)
         
     if request.method == "POST":
@@ -486,7 +494,7 @@ def delete_patients_food(patients_food_id):
         mysql.connection.commit()
         return redirect(url_for("patients_foods_view"))
     else:
-        return render_template("delete_patient.html", patients_food_id=patients_food_id)
+        return render_template("delete_patient_foods.html", patients_food_id=patients_food_id)
 
 
 @app.route("/update_patients_food/<int:patients_food_id>", methods=["POST","GET"])
@@ -518,15 +526,6 @@ FROM Patients;
     return redirect(url_for("patients_foods_view"))
 
 # Listener
-query = """
-SELECT Lab_Results.lab_id, CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name", Dialysis_Forms.name as "Dialysis Type",
-Lab_Results.phosphorus_lab as "Phosphorous Lab", Lab_Results.potassium_lab as "Potassium Lab", Lab_Results.sodium_lab as "Sodium Lab", 
-Lab_Results.dialysis_adequacy_lab as "Dialysis Adequacy", Lab_Results.Lab_Results_time as "Time" FROM Lab_Results
-JOIN Patients on Lab_Results.Patients_patient_id = Patients.patient_id 
-JOIN Dialysis_Forms on Lab_Results.Dialysis_Forms_dialysis_id = Dialysis_Forms.dialysis_id;"""
-cursor = db.execute_query(db_connection=db_connection, query=query)
-results = cursor.fetchall()
-print(results)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 9112))
     app.run(port=port, debug=True)

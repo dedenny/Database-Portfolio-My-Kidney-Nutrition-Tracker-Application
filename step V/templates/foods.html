@@ -1,6 +1,7 @@
 {% extends 'base.html' %} {% block title %} Foods {% endblock %} {% block
 content%}
 <h4>Foods Table</h4>
+{% if foods[0] is defined %}
 <table class="table">
   <tr class="table__header">
     {% for key in foods[0].keys() %}
@@ -21,6 +22,9 @@ content%}
   </tr>
   {% endfor %}
 </table>
+{% else %}
+<div>No data found :(</div>
+{% endif %}
 <hr />
 
 <h4>Add New Food</h4>

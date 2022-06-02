@@ -3,7 +3,7 @@
 {% block content%}
 
 <h4>Patients Food Table</h4>
-
+{% if patient_foods[0] is defined %}
 <table class="table">
   <tr class="table__header">
     {% for key in patient_foods[0].keys() %}
@@ -26,6 +26,9 @@
   </tr>
   {% endfor %}
 </table>
+{% else %}
+<div>No data found :(</div>
+{% endif %}
 
 <h4>Add New Food</h4>
 <div class="row">
