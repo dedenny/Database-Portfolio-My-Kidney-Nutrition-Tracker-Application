@@ -177,13 +177,13 @@ def patients_view():
         gender = request.form["gender"]
         height = request.form["height"]
         weight = request.form["weight"]
-        if gender == "":
+        if gender == None:
             query = "INSERT INTO Patients (last_name, first_name, age, height, weight) VALUES (%s, %s, %s, %s, %s);"
             cursor.execute(query, (last_name, first_name, age, height, weight))
             db_connection.commit()
         else:
             query = "INSERT INTO Patients (last_name, first_name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s, %s);"
-            cursor.execute(query, (last_name, first_name, age, height, weight))
+            cursor.execute(query, (last_name, first_name, age, gender, height, weight))
             db_connection.commit()
             return redirect(url_for("patients_view"))
 
@@ -566,7 +566,7 @@ def patients_foods_view():
     form = NewPatientFood()
     if request.method == "GET":
         query = """
-        SELECT Patients_Food.patient_food_id as "id", Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
+        SELECT Patients_Food.patients_food_id as "id", Foods.food_name as "Food Name", CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name",
     Patients_Food.patient_food_time as "Time consumed" from Patients_Food
     JOIN Foods on Patients_Food.Foods_food_id = Foods.food_id
     JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;
@@ -610,7 +610,7 @@ def delete_patients_food(patients_food_id):
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
-        query = "DELETE FROM Patients_Food WHERE patient_food_id = %s;"
+        query = "DELETE FROM Patients_Food WHERE patients_food_id = %s;"
         cursor.execute(query,(patients_food_id,))
         db_connection.commit()
         db_connection.close()
@@ -644,7 +644,7 @@ FROM Patients;
         form.food_id.choices = [(f['food_id'], f['food_name']) for f in foods_dropdown]
 
         # populate form data
-        query0 = "SELECT Foods_food_id, Patients_patient_id, patient_food_time FROM Patients_Food WHERE patient_food_id = %s"
+        query0 = "SELECT Foods_food_id, Patients_patient_id, patient_food_time FROM Patients_Food WHERE patients_food_id = %s"
         cursor.execute(query0, (patients_food_id,))
         pat_food_data = cursor.fetchall()[0]
         form.food_id.data = pat_food_data['Foods_food_id']
@@ -658,7 +658,7 @@ FROM Patients;
         food_time = request.form["food_time"]
         query = """UPDATE Patients_Food
     SET Foods_food_id = %s, Patients_patient_id = %s, patient_food_time = %s
-    WHERE patient_food_id = %s;"""
+    WHERE patients_food_id = %s;"""
         cursor.execute(query, (food_id, patient_id, food_time, patients_food_id))
         db_connection.commit()
     db_connection.close()
