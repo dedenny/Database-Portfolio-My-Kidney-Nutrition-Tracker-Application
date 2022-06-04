@@ -1,4 +1,5 @@
 {% extends 'base.html' %} {% block content%}
+
 <ul>
   <li>
     <h3><a href="{{ url_for('patients_view') }}">Patients</a></h3>
@@ -58,6 +59,7 @@
   </li>
 </ul>
 
+<script>document.getElementById('Search').style.display ="none";</script> <!--https://www.techiedelight.com/hide-div-container-javascript/-->
 {% endblock %}
 <!-- Code Citation https://github.com/osu-cs340-ecampus/flask-starter-app, 
   https://app.pluralsight.com/library/courses/structuring-growing-flask-application/table-of-contents -->
