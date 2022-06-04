@@ -408,6 +408,8 @@ def update_lab_result(lab_id=None):
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditLabResult()
     if request.method == "GET":
+
+        # create dropdowns for patient and dialysis type
         query2 = """
         SELECT patient_id, 
 CONCAT(first_name, ' ', last_name) as Name 
@@ -422,7 +424,23 @@ FROM Patients;
         db_connection.commit()
         dialyis_dropdown = cursor.fetchall()
         form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
-        query0 = """SELECT """
+
+        # prepopulate data
+
+        query0 = """
+        SELECT phosphorus_lab as phos_lab, potassium_lab as pot_lab, .sodium_lab as sod_lab, 
+        dialysis_adequacy_lab as dial_lab, Lab_Results_time as lab_time, Patients_patient_id as pat_id, Dialysis_Forms_dialysis_id as dial_id
+        FROM Lab_Results WHERE Lab_Results.lab_id = %s;
+        """
+        cursor.execute(query0, (lab_id,))
+        lab_data = cursor.fetchall()[0]
+        form.phos_lab.data = lab_data['phos_lab']
+        form.pot_lab.data = lab_data['pot_lab']
+        form.sod_lab.data = lab_data['sod_lab']
+        form.dial_lab.data = lab_data['dial_lab']
+        form.lab_time.data = lab_data['lab_time']
+        form.pat_id.data = lab_data['pat_id']
+        form.dial_id.data = lab_data['dial_id']
         db_connection.close()
         return render_template("update_lab_results.html", form=form, lab_id=lab_id)
     if request.method == "POST":
