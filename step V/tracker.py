@@ -1,14 +1,17 @@
 import os
 
-from flask import Flask, json, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for
 from flask_mysqldb import MySQL
 from flask_wtf import FlaskForm
-from jmespath import search
-from wtforms import StringField, SubmitField, IntegerField, FloatField, SelectField, DateTimeField
+from wtforms import StringField, SubmitField, IntegerField, FloatField, SelectField, DateTimeLocalField
 from wtforms.validators import DataRequired
 from flask_bootstrap import Bootstrap
+import MySQLdb
 
-import database.db_connector as db
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configuration
 
@@ -19,13 +22,12 @@ mysql = MySQL(app)
 
 app.config["MYSQL_HOST"] = os.environ.get("340DBHOST")
 app.config["MYSQL_USER"] = os.environ.get("340DBUSER")
-app.config["MYSQL_PASSWORD"] = passwd = os.environ.get("340DBPW")
+app.config["MYSQL_PASSWORD"] = os.environ.get("340DBPW")
 app.config["MYSQL_DB"] = os.environ.get("340DB")
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 app.config["SECRET_KEY"] = "secretkey"
-
+test = ()
 # Forms
-
 
 class NewPatient(FlaskForm):
     lname = StringField(
@@ -55,7 +57,7 @@ class NewLabResult(FlaskForm):
     pot_lab = FloatField("Potassium Lab")
     sod_lab = IntegerField("Sodium Lab")
     dial_lab = FloatField("Dialysis Adequacy Lab")
-    lab_time = DateTimeField("Lab Results Time", format='%Y-%m-%d %H:%M:%S')
+    lab_time = DateTimeLocalField("Lab Results Time", format='%Y-%m-%d %H:%M:%S')
     pat_id = SelectField(
         "Patient Select"
     )  # how to show this as a list of existing patients? Ideally by name rather than id
@@ -69,7 +71,7 @@ class EditLabResult(FlaskForm):
     pot_lab = FloatField("Potassium Lab")
     sod_lab = IntegerField("Sodium Lab")
     dial_lab = FloatField("Dialysis Adequacy Lab")
-    lab_time = DateTimeField("Lab Results Time", format='%Y-%m-%d %H:%M:%S')
+    lab_time = DateTimeLocalField("Lab Results Time", format='%Y-%m-%d %H:%M:%S')
     pat_id = SelectField("Patient Select")
     dial_id = SelectField("Dialysis Type Select")
     submit = SubmitField("Edit Lab Result")
@@ -116,14 +118,14 @@ class EditDialysisForm(FlaskForm):
 class NewPatientFood(FlaskForm):  # why are we using a composite primary key??
     food_id = SelectField("Food ID", validators=[DataRequired()])
     patient_id = SelectField("Patient ID", validators=[DataRequired()])
-    food_time = DateTimeField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
+    food_time = DateTimeLocalField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
     submit = SubmitField("Create New PatientFood")
 
 
 class EditPatientFood(FlaskForm):
     food_id = SelectField("Food", validators=[DataRequired()])
     patient_id = SelectField("Patient", validators=[DataRequired()])
-    food_time = DateTimeField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
+    food_time = DateTimeLocalField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
     submit = SubmitField("Edit Patient-Food")
 
 def search_bar(sample_tuple, search_term):
@@ -154,13 +156,15 @@ def home():
 
 @app.route("/patients", methods=["POST", "GET"])
 def patients_view():
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], passwd = app.config["MYSQL_PASSWORD"],db=app.config["MYSQL_DB"])
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     q = request.args.get('q')
     gender = None
     form = NewPatient()
     if request.method == "GET":
         query = "SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;"
-        cursor = db.execute_query(db_connection=db_connection, query=query)
+        cursor.execute(query)
+        db_connection.commit()
         results = cursor.fetchall()  # results should be a tuple containing dictionary items
         if q:
             results = search_bar(results,q)
@@ -175,30 +179,23 @@ def patients_view():
         weight = request.form["weight"]
         if gender == "":
             query = "INSERT INTO Patients (last_name, first_name, age, height, weight) VALUES (%s, %s, %s, %s, %s);"
-            db.execute_query(
-                db_connection=db_connection, query=query, query_params=(last_name, first_name, age, height, weight)
-            )
-            db_connection.close()
-            return redirect(url_for("patients_view"))
+            cursor.execute(query, (last_name, first_name, age, height, weight))
+            db_connection.commit()
         else:
             query = "INSERT INTO Patients (last_name, first_name, age, gender, height, weight) VALUES (%s, %s, %s, %s, %s, %s);"
-            db.execute_query(
-                db_connection=db_connection,
-                query=query,
-                query_params=(last_name, first_name, age, gender, height, weight),
-            )
-            db_connection.close()
+            cursor.execute(query, (last_name, first_name, age, height, weight))
+            db_connection.commit()
             return redirect(url_for("patients_view"))
 
 
 @app.route("/delete_patient/<int:patient_id>", methods=["POST", "GET"])
 def delete_patient(patient_id):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
         query = "DELETE FROM Patients WHERE patient_id = '%s';"
-        cur = mysql.connection.cursor()
-        cur.execute(query, (patient_id,))
-        mysql.connection.commit()
+        cursor.execute(query, (patient_id,))
+        db_connection.commit()
         db_connection.close()
         return redirect(url_for("patients_view"))
     else:
@@ -208,9 +205,24 @@ def delete_patient(patient_id):
 @app.route("/update_patient/<int:patient_id>", methods=["POST","GET"])
 @app.route("/update_patient/", methods=["POST","GET"])
 def update_patient(patient_id=None):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditPatient()
     if request.method == "GET":
+
+        # query for existing data
+        query0 = """SELECT last_name as lname, first_name as fname, age, gender, height, weight from Patients where patient_id = %s"""
+        cursor.execute(query0, (patient_id,))
+        db_connection.commit()
+        patient_data = cursor.fetchall()[0]
+        
+        #populate form with existing data
+        form.lname.data = patient_data['lname']
+        form.fname.data = patient_data['fname']
+        form.age.data = patient_data['age']
+        form.gender.data = patient_data['gender']
+        form.height.data = patient_data['height']
+        form.weight.data = patient_data['weight']
         db_connection.close()
         return render_template("update_patient.html", form=form, patient_id=patient_id)
     if request.method == "POST":
@@ -225,10 +237,8 @@ def update_patient(patient_id=None):
     SET last_name = %s, first_name = %s, age = %s, gender = %s, 
     height = %s, weight = %s
     WHERE patient_id = %s;"""
-        #cur = mysql.connection.cursor()
-        #cur.execute(query, (last_name, first_name, age, gender, height, weight, pat_id))
-        #mysql.connection.commit()
-        db.execute_query(db_connection=db_connection, query=query, query_params=(last_name, first_name, age, gender, height, weight, pat_id))
+        cursor.execute(query, (last_name, first_name, age, gender, height, weight, pat_id))
+        db_connection.commit()
     db_connection.close()
     return redirect(url_for("patients_view"))
 
@@ -237,12 +247,15 @@ def update_patient(patient_id=None):
 
 @app.route("/foods", methods=["POST", "GET"])
 def foods_view():
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
+
     q = request.args.get('q')
     form = NewFood()
     if request.method == "GET":
         query = "SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;"
-        cursor = db.execute_query(db_connection=db_connection, query=query)
+        cursor.execute(query)
+        db_connection.commit()
         results = cursor.fetchall()
         if q:
             results = search_bar(results,q)
@@ -259,23 +272,20 @@ def foods_view():
         amount = request.form["amount"]
 
         query = "INSERT INTO Foods (food_name, amount, phosphorous_content, sodium_content, calories, potassium_content) VALUES (%s, %s, %s, %s, %s, %s);"
-        db.execute_query(
-            db_connection=db_connection,
-            query=query,
-            query_params=(food_name, amount, phosphorous_content, sodium_content, calories, potassium_content),
-        )
+        cursor.execute(query,(food_name, amount, phosphorous_content, sodium_content, calories, potassium_content))
+        db_connection.commit()
         db_connection.close()
         return redirect(url_for("foods_view"))
 
 
 @app.route("/delete_foods/<int:food_id>", methods=["POST", "GET"])
 def delete_foods(food_id):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
         query = "DELETE FROM Foods WHERE food_id = '%s';"
-        cur = mysql.connection.cursor()
-        cur.execute(query, (food_id,))
-        mysql.connection.commit()
+        cursor.execute(query,(food_id,))
+        db_connection.commit()
         db_connection.close()
         return redirect(url_for("foods_view"))
     else:
@@ -285,9 +295,20 @@ def delete_foods(food_id):
 @app.route("/update_food/<int:food_id>", methods=["POST","GET"])
 @app.route("/update_food/", methods=["POST","GET"])
 def update_food(food_id=None):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditFood()
     if request.method == "GET":
+        query0 = "SELECT food_name, phosphorous_content, sodium_content, calories, potassium_content, amount FROM Foods WHERE food_id = %s"
+        cursor.execute(query0,(food_id,))
+        db_connection.commit()
+        food_data = cursor.fetchall()[0]
+        form.food_name.data = food_data['food_name']
+        form.phosphorous_content.data = food_data['phosphorous_content']
+        form.sodium_content.data = food_data['sodium_content']
+        form.calories.data = food_data['calories']
+        form.potassium_content.data = food_data['potassium_content']
+        form.amount.data = food_data['amount']
         db_connection.close()
         return render_template("update_food.html", form=form, food_id=food_id)
     if request.method == "POST":
@@ -302,7 +323,8 @@ def update_food(food_id=None):
     SET food_name = %s, phosphorous_content = %s, sodium_content = %s, calories = %s, 
     potassium_content = %s, amount = %s
     WHERE food_id = %s;"""
-        db.execute_query(db_connection=db_connection, query=query, query_params=(food_name, phosphorous_content, sodium_content, calories, potassium_content, amount, food_id))
+        cursor.execute(query,(food_name, phosphorous_content, sodium_content, calories, potassium_content, amount, food_id))
+        db_connection.commit()
     db_connection.close()
     return redirect(url_for("foods_view"))
 
@@ -311,7 +333,8 @@ def update_food(food_id=None):
 
 @app.route("/lab_results", methods=["POST", "GET"])
 def labs_view():
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     q = request.args.get('q')
     form = NewLabResult()
     if request.method == "GET":
@@ -321,20 +344,24 @@ Lab_Results.phosphorus_lab as "Phosphorous Lab", Lab_Results.potassium_lab as "P
 Lab_Results.dialysis_adequacy_lab as "Dialysis Adequacy", Lab_Results.lab_results_time as "Time" FROM Lab_Results
 JOIN Patients on Lab_Results.Patients_patient_id = Patients.patient_id 
 JOIN Dialysis_Forms on Lab_Results.Dialysis_Forms_dialysis_id = Dialysis_Forms.dialysis_id;"""
-        cursor = db.execute_query(db_connection=db_connection, query=query)
+        cursor.execute(query)
+        db_connection.commit()
         results = cursor.fetchall()
         query2 = """
         SELECT patient_id, 
 CONCAT(first_name, ' ', last_name) as Name 
 FROM Patients;
         """
-        cursor = db.execute_query(db_connection=db_connection, query=query2)
+        cursor.execute(query2)
+        db_connection.commit()
         patients_dropdown = cursor.fetchall()   
         # patients_dropdown is a tuple consisting of dictionaries:
         # for example: ({'patient_id': 1, 'Name': 'Arlene Smith'}, {'patient_id': 2, 'Name': 'f f'}, {'patient_id': 3, 'Name': 'Kayla Harrison'}, {'patient_id': 4, 'Name': 'Henry Jackson'}, {'patient_id': 10, 'Name': '6 65'})
         form.pat_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
+        form.pat_id.choices.append((None,None))   # test this!
         query3 = "SELECT dialysis_id, name FROM Dialysis_Forms;"
-        cursor = db.execute_query(db_connection=db_connection, query=query3)
+        cursor.execute(query3)
+        db_connection.commit()
         dialyis_dropdown = cursor.fetchall()
         form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
         if q:
@@ -354,23 +381,20 @@ FROM Patients;
                 item = "NULL"
         query = """INSERT INTO Lab_Results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time, 
 Patients_patient_id, Dialysis_Forms_dialysis_id) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
-        db.execute_query(
-            db_connection=db_connection,
-            query=query,
-            query_params=(phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id),
-        )
+        cursor.execute(query,(phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id))
+        db_connection.commit()
         db_connection.close()
         return redirect(url_for("labs_view"))
 
 
 @app.route("/delete_labs/<int:lab_id>", methods=["POST", "GET"])
 def delete_labs(lab_id):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
         query = "DELETE FROM Lab_Results WHERE lab_id = '%s';"
-        cur = mysql.connection.cursor()
-        cur.execute(query, (lab_id,))
-        mysql.connection.commit()
+        cursor.execute(query,(lab_id,))
+        db_connection.commit()
         db_connection.close()
         return redirect(url_for("labs_view"))
     else:
@@ -380,7 +404,8 @@ def delete_labs(lab_id):
 @app.route("/update_lab_results/<int:lab_id>", methods=["POST","GET"])
 @app.route("/update_lab_results/", methods=["POST","GET"])
 def update_lab_result(lab_id=None):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditLabResult()
     if request.method == "GET":
         query2 = """
@@ -388,13 +413,16 @@ def update_lab_result(lab_id=None):
 CONCAT(first_name, ' ', last_name) as Name 
 FROM Patients;
         """
-        cursor = db.execute_query(db_connection=db_connection, query=query2)
+        cursor.execute(query2)
+        db_connection.commit()
         patients_dropdown = cursor.fetchall()  
         form.pat_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
         query3 = "SELECT dialysis_id, name FROM Dialysis_Forms;"
-        cursor = db.execute_query(db_connection=db_connection, query=query3)
+        cursor.execute(query3)
+        db_connection.commit()
         dialyis_dropdown = cursor.fetchall()
         form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
+        query0 = """SELECT """
         db_connection.close()
         return render_template("update_lab_results.html", form=form, lab_id=lab_id)
     if request.method == "POST":
@@ -409,7 +437,8 @@ FROM Patients;
     SET phosphorus_lab = %s, potassium_lab = %s, sodium_lab = %s, dialysis_adequacy_lab = %s, 
     Lab_Results_time = %s, Patients_patient_id = %s, Dialysis_Forms_dialysis_id = %s
     WHERE lab_id = %s;"""
-        db.execute_query(db_connection=db_connection, query=query, query_params=(phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id, lab_id))
+        cursor.execute(query, (phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id, lab_id))
+        db_connection.commit()
     db_connection.close()
     return redirect(url_for("labs_view"))
 
@@ -418,12 +447,14 @@ FROM Patients;
 
 @app.route("/dialysis_forms", methods=["POST", "GET"])
 def dialysis_forms_view():
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     q = request.args.get('q')
     form = NewDialysisForm()
     if request.method == "GET":
         query = "SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;"
-        cursor = db.execute_query(db_connection=db_connection, query=query)
+        cursor.execute(query)
+        db_connection.commit()
         results = cursor.fetchall()
         if q:
             results = search_bar(results,q)
@@ -435,23 +466,21 @@ def dialysis_forms_view():
         adequacy_standard = request.form["adequacy_standard"]
 
         query = "INSERT INTO Dialysis_Forms (name, location_type, adequacy_standard) VALUES (%s, %s, %s);"
-        db.execute_query(
-            db_connection=db_connection,
-            query=query,
-            query_params=(name, location_type, adequacy_standard),
-        )
+        cursor.execute(query, (name, location_type, adequacy_standard))
+        db_connection.commit()
+        results = cursor.fetchall()
         db_connection.close()
         return redirect(url_for("dialysis_forms_view"))
 
 
 @app.route("/delete_dialysis_form/<int:dialysis_id>", methods=["POST", "GET"])
 def delete_dialysis_form(dialysis_id):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
         query = "DELETE FROM Dialysis_Forms WHERE dialysis_id = '%s';"
-        cur = mysql.connection.cursor()
-        cur.execute(query, (dialysis_id,))
-        mysql.connection.commit()
+        cursor.execute(query, (dialysis_id,))
+        db_connection.commit()
         db_connection.close()
         return redirect(url_for("dialysis_forms_view"))
     else:
@@ -461,7 +490,8 @@ def delete_dialysis_form(dialysis_id):
 @app.route("/update_dialysis_type/<int:dialysis_id>", methods=["POST","GET"])
 @app.route("/update_dialysis_type/", methods=["POST","GET"])
 def update_dialysis_type(dialysis_id=None):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditDialysisForm()
     if request.method == "GET":
         db_connection.close()
@@ -473,7 +503,8 @@ def update_dialysis_type(dialysis_id=None):
         query = """UPDATE Dialysis_Forms
     SET name = %s, location_type = %s, adequacy_standard = %s
     WHERE dialysis_id = %s;"""
-        db.execute_query(db_connection=db_connection, query=query, query_params=(name, location_type, adequacy_standard, dialysis_id))
+        cursor.execute(query, (name, location_type, adequacy_standard, dialysis_id))
+        db_connection.commit()
     db_connection.close()
     return redirect(url_for("dialysis_forms_view"))
 
@@ -482,7 +513,8 @@ def update_dialysis_type(dialysis_id=None):
 
 @app.route("/patients_foods", methods=["POST", "GET"])
 def patients_foods_view():
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     q = request.args.get('q')
     form = NewPatientFood()
     if request.method == "GET":
@@ -492,10 +524,12 @@ def patients_foods_view():
     JOIN Foods on Patients_Food.Foods_food_id = Foods.food_id
     JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;
     """
-        cursor = db.execute_query(db_connection=db_connection, query=query)
+        cursor.execute(query)
+        db_connection.commit()   # do we need the commit after a select query?
         results = cursor.fetchall()
         query_foods = "SELECT food_id, food_name FROM Foods;"
-        cursor = db.execute_query(db_connection=db_connection, query=query_foods)
+        cursor.execute(query_foods)
+        db_connection.commit()
         foods_dropdown = cursor.fetchall()
         form.food_id.choices = [(f['food_id'],f['food_name']) for f in foods_dropdown]
         query2 = """
@@ -503,7 +537,8 @@ def patients_foods_view():
 CONCAT(first_name, ' ', last_name) as Name 
 FROM Patients;
         """
-        cursor = db.execute_query(db_connection=db_connection, query=query2)
+        cursor.execute(query2)
+        db_connection.commit()
         patients_dropdown = cursor.fetchall()   
         form.patient_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
         if q:
@@ -517,22 +552,20 @@ FROM Patients;
         food_time = request.form["food_time"]
 
         query = "INSERT INTO Patients_Food (Foods_food_id, Patients_patient_id, patient_food_time) VALUES (%s, %s, %s);"
-        db.execute_query(
-            db_connection=db_connection,
-            query=query,
-            query_params=(food_id, patient_id, food_time),
-        )
+
+        cursor.execute(query,(food_id, patient_id, food_time))
+        db_connection.commit()
         db_connection.close()
         return redirect(url_for("patients_foods_view"))
 
 @app.route("/delete_patients_food/<int:patients_food_id>", methods=["POST", "GET"])
 def delete_patients_food(patients_food_id):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
         query = "DELETE FROM Patients_Food WHERE patient_food_id = %s;"
-        cur = mysql.connection.cursor()
-        cur.execute(query, (patients_food_id,))
-        mysql.connection.commit()
+        cursor.execute(query,(patients_food_id,))
+        db_connection.commit()
         db_connection.close()
         return redirect(url_for("patients_foods_view"))
     else:
@@ -543,7 +576,8 @@ def delete_patients_food(patients_food_id):
 @app.route("/update_patients_food/<int:patients_food_id>", methods=["POST","GET"])
 @app.route("/update_patients_food/", methods=["POST","GET"])
 def update_patients_food(patients_food_id=None):
-    db_connection = db.connect_to_database()
+    db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditPatientFood()
     if request.method == "GET":
         query2 = """
@@ -551,11 +585,13 @@ def update_patients_food(patients_food_id=None):
 CONCAT(first_name, ' ', last_name) as Name 
 FROM Patients;
         """
-        cursor = db.execute_query(db_connection=db_connection, query=query2)
+        cursor.execute(query2)
+        db_connection.commit()
         patients_dropdown = cursor.fetchall()  
         form.patient_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
         query3 = "SELECT food_id, food_name FROM Foods;"
-        cursor = db.execute_query(db_connection=db_connection, query=query3)
+        cursor.execute(query3)
+        db_connection.commit()
         foods_dropdown = cursor.fetchall()
         form.food_id.choices = [(f['food_id'], f['food_name']) for f in foods_dropdown]
         db_connection.close()
@@ -567,7 +603,8 @@ FROM Patients;
         query = """UPDATE Patients_Food
     SET Foods_food_id = %s, Patients_patient_id = %s, patient_food_time = %s
     WHERE patient_food_id = %s;"""
-        db.execute_query(db_connection=db_connection, query=query, query_params=(food_id, patient_id, food_time, patients_food_id))
+        cursor.execute(query, (food_id, patient_id, food_time, patients_food_id))
+        db_connection.commit()
     db_connection.close()
     return redirect(url_for("patients_foods_view"))
 
