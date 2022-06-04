@@ -342,11 +342,13 @@ def labs_view():
         SELECT Lab_Results.lab_id, CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name", Dialysis_Forms.name as "Dialysis Type",
 Lab_Results.phosphorus_lab as "Phosphorous Lab", Lab_Results.potassium_lab as "Potassium Lab", Lab_Results.sodium_lab as "Sodium Lab", 
 Lab_Results.dialysis_adequacy_lab as "Dialysis Adequacy", Lab_Results.lab_results_time as "Time" FROM Lab_Results
-JOIN Patients on Lab_Results.Patients_patient_id = Patients.patient_id 
-JOIN Dialysis_Forms on Lab_Results.Dialysis_Forms_dialysis_id = Dialysis_Forms.dialysis_id;"""
+LEFT JOIN Patients on Lab_Results.Patients_patient_id = Patients.patient_id 
+LEFT JOIN Dialysis_Forms on Lab_Results.Dialysis_Forms_dialysis_id = Dialysis_Forms.dialysis_id;"""
         cursor.execute(query)
         db_connection.commit()
         results = cursor.fetchall()
+
+        # populate patient drop-down for add new lab results:
         query2 = """
         SELECT patient_id, 
 CONCAT(first_name, ' ', last_name) as Name 
@@ -358,12 +360,15 @@ FROM Patients;
         # patients_dropdown is a tuple consisting of dictionaries:
         # for example: ({'patient_id': 1, 'Name': 'Arlene Smith'}, {'patient_id': 2, 'Name': 'f f'}, {'patient_id': 3, 'Name': 'Kayla Harrison'}, {'patient_id': 4, 'Name': 'Henry Jackson'}, {'patient_id': 10, 'Name': '6 65'})
         form.pat_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
-        form.pat_id.choices.append((None,None))   # test this!
+        form.pat_id.choices.append(('NULL','Missing/Unknown'))   
+
+        # populate dialysis drop-down:
         query3 = "SELECT dialysis_id, name FROM Dialysis_Forms;"
         cursor.execute(query3)
         db_connection.commit()
         dialyis_dropdown = cursor.fetchall()
         form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
+        form.dial_id.choices.append(('NULL','Missing/Unknown'))
         if q:
             results = search_bar(results,q)
         db_connection.close()
@@ -379,9 +384,21 @@ FROM Patients;
         for item in (phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id):
             if item == "":
                 item = "NULL"
-        query = """INSERT INTO Lab_Results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time, 
-Patients_patient_id, Dialysis_Forms_dialysis_id) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
-        cursor.execute(query,(phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id))
+        if pat_id == 'NULL' and dial_id == 'NULL':
+            query = """INSERT INTO Lab_Results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time) VALUES (%s, %s, %s, %s, %s);"""
+            cursor.execute(query, (phos_lab, pot_lab, sod_lab, dial_lab, lab_time))
+        elif pat_id == 'NULL':
+            query = """INSERT INTO Lab_Results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time, Dialysis_Forms_dialysis_id) 
+            VALUES (%s, %s, %s, %s, %s, %s);"""
+            cursor.execute(query, (phos_lab, pot_lab, sod_lab, dial_lab, lab_time, dial_id))
+        elif dial_id == 'NULL':
+            query = """INSERT INTO Lab_Results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time, 
+Patients_patient_id) VALUES (%s, %s, %s, %s, %s, %s);"""
+            cursor.execute(query, (phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id))
+        else:
+            query = """INSERT INTO Lab_Results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time, 
+    Patients_patient_id, Dialysis_Forms_dialysis_id) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
+            cursor.execute(query,(phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id))
         db_connection.commit()
         db_connection.close()
         return redirect(url_for("labs_view"))
@@ -419,11 +436,14 @@ FROM Patients;
         db_connection.commit()
         patients_dropdown = cursor.fetchall()  
         form.pat_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
+        form.pat_id.choices.append(('NULL', 'Missing/Unknown'))
+
         query3 = "SELECT dialysis_id, name FROM Dialysis_Forms;"
         cursor.execute(query3)
         db_connection.commit()
         dialyis_dropdown = cursor.fetchall()
         form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
+        form.dial_id.choices.append(('NULL','Missing/Unknown'))
 
         # prepopulate data
 
@@ -451,6 +471,10 @@ FROM Patients;
         lab_time = request.form["lab_time"]
         pat_id = request.form["pat_id"]
         dial_id = request.form["dial_id"]
+        if dial_id == 'NULL':
+            dial_id = None
+        if pat_id == 'NULL':
+            pat_id = None
         query = """UPDATE Lab_Results
     SET phosphorus_lab = %s, potassium_lab = %s, sodium_lab = %s, dialysis_adequacy_lab = %s, 
     Lab_Results_time = %s, Patients_patient_id = %s, Dialysis_Forms_dialysis_id = %s
