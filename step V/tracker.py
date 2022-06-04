@@ -428,7 +428,7 @@ FROM Patients;
         # prepopulate data
 
         query0 = """
-        SELECT phosphorus_lab as phos_lab, potassium_lab as pot_lab, .sodium_lab as sod_lab, 
+        SELECT phosphorus_lab as phos_lab, potassium_lab as pot_lab, sodium_lab as sod_lab, 
         dialysis_adequacy_lab as dial_lab, Lab_Results_time as lab_time, Patients_patient_id as pat_id, Dialysis_Forms_dialysis_id as dial_id
         FROM Lab_Results WHERE Lab_Results.lab_id = %s;
         """
@@ -603,6 +603,7 @@ def update_patients_food(patients_food_id=None):
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditPatientFood()
     if request.method == "GET":
+        # populate dropdowns for patients and foods
         query2 = """
         SELECT patient_id, 
 CONCAT(first_name, ' ', last_name) as Name 
@@ -617,6 +618,14 @@ FROM Patients;
         db_connection.commit()
         foods_dropdown = cursor.fetchall()
         form.food_id.choices = [(f['food_id'], f['food_name']) for f in foods_dropdown]
+
+        # populate form data
+        query0 = "SELECT Foods_food_id, Patients_patient_id, patient_food_time FROM Patients_Food WHERE patient_food_id = %s"
+        cursor.execute(query0, (patients_food_id,))
+        pat_food_data = cursor.fetchall()[0]
+        form.food_id.data = pat_food_data['Foods_food_id']
+        form.patient_id.data = pat_food_data['Patients_patient_id']
+        form.food_time.data = pat_food_data['patient_food_time']
         db_connection.close()
         return render_template("update_patients_food.html", form=form, patients_food_id=patients_food_id)
     if request.method == "POST":
