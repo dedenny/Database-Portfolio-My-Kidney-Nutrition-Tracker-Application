@@ -512,6 +512,12 @@ def update_dialysis_type(dialysis_id=None):
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditDialysisForm()
     if request.method == "GET":
+        query0 = "SELECT name, location_type, adequacy_standard FROM Dialysis_Forms where dialysis_id = %s"
+        cursor.execute(query0, (dialysis_id,))
+        dialysis_data = cursor.fetchall()[0]
+        form.name.data = dialysis_data['name']
+        form.location_type.data = dialysis_data['location_type']
+        form.adequacy_standard.data = dialysis_data['adequacy_standard']
         db_connection.close()
         return render_template("update_dialysis_type.html", form=form, dialysis_id=dialysis_id)
     if request.method == "POST":
@@ -527,7 +533,6 @@ def update_dialysis_type(dialysis_id=None):
     return redirect(url_for("dialysis_forms_view"))
 
 # Patient Foods
-
 
 @app.route("/patients_foods", methods=["POST", "GET"])
 def patients_foods_view():
