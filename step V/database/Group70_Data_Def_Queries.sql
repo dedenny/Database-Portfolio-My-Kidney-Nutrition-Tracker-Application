@@ -1,4 +1,10 @@
--- MariaDB dump 10.19  Distrib 10.6.7-MariaDB, for Win64 (AMD64)
+-- CS340 Group 70, Spring 2022
+-- Charles Cal and Deanna Denny
+-- This SQL file defines the necessary tables and initial data for use in the CS340 Database project.
+-- It defines the tables Patients, Foods, Dialysis_Forms, Lab_Results, and Patients_Food, and adds sample data to each.
+
+
+--MariaDB dump 10.19  Distrib 10.6.7-MariaDB, for Win64 (AMD64)
 --
 -- Host: localhost    Database: kidney
 -- ------------------------------------------------------

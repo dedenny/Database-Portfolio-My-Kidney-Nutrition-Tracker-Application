@@ -27,9 +27,14 @@ app.config["MYSQL_DB"] = os.environ.get("340DB")
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 app.config["SECRET_KEY"] = "secretkey"
 test = ()
-# Forms
+
+
+# Forms: Create forms for use with wtforms
 
 class NewPatient(FlaskForm):
+    """
+    A form to create a new patient
+    """
     lname = StringField(
         "Last Name", validators=[DataRequired()]
     )  # Consider adding Length Validator to match the max length dictated by MySQL
@@ -41,7 +46,10 @@ class NewPatient(FlaskForm):
     submit = SubmitField("Create New Patient")
 
 
-class EditPatient(FlaskForm):  # possible to find a way to populate this with existing data?
+class EditPatient(FlaskForm):
+    """
+    A form to edit an existing patient
+    """
     pat_id = IntegerField("Patient ID", validators=[DataRequired()])
     lname = StringField("Last Name", validators=[DataRequired()])
     fname = StringField("First Name", validators=[DataRequired()])
@@ -53,10 +61,13 @@ class EditPatient(FlaskForm):  # possible to find a way to populate this with ex
 
 
 class NewLabResult(FlaskForm):
-    phos_lab = FloatField("Phosphorous Lab")
-    pot_lab = FloatField("Potassium Lab")
-    sod_lab = IntegerField("Sodium Lab")
-    dial_lab = FloatField("Dialysis Adequacy Lab")
+    """
+    A form to add a new lab result
+    """ 
+    phos_lab = FloatField("Phosphorous Lab (mg/dL)")
+    pot_lab = FloatField("Potassium Lab (mEq/L)")
+    sod_lab = IntegerField("Sodium Lab (mEq/L)")
+    dial_lab = FloatField("Dialysis Adequacy Lab (Kt/v)")
     lab_time = DateTimeLocalField("Lab Results Time", format='%Y-%m-%d %H:%M:%S')
     pat_id = SelectField(
         "Patient Select"
@@ -66,11 +77,14 @@ class NewLabResult(FlaskForm):
 
 
 class EditLabResult(FlaskForm):
+    """
+    A form to edit an existing lab result
+    """
     lab_id = IntegerField("Lab ID")
-    phos_lab = FloatField("Phosphorous Lab")
-    pot_lab = FloatField("Potassium Lab")
-    sod_lab = IntegerField("Sodium Lab")
-    dial_lab = FloatField("Dialysis Adequacy Lab")
+    phos_lab = FloatField("Phosphorous Lab (mg/dL)")
+    pot_lab = FloatField("Potassium Lab (mEq/L)")
+    sod_lab = IntegerField("Sodium Lab (mEq/L)")
+    dial_lab = FloatField("Dialysis Adequacy Lab (Kt/v)")
     lab_time = DateTimeLocalField("Lab Results Time", format='%Y-%m-%d %H:%M:%S')
     pat_id = SelectField("Patient Select")
     dial_id = SelectField("Dialysis Type Select")
@@ -78,29 +92,38 @@ class EditLabResult(FlaskForm):
 
 
 class NewFood(FlaskForm):
+    """
+    A form to add a new food entry
+    """
     food_name = StringField("Food Name", validators=[DataRequired()])
-    amount = IntegerField("Serving Size (grams)")
-    phosphorous_content = IntegerField("Phosphorous Content")  # need to add units
-    sodium_content = IntegerField("Sodium Content")
+    amount = IntegerField("Serving Size (g)")
+    phosphorous_content = IntegerField("Phosphorous Content (mg)")  # need to add units
+    sodium_content = IntegerField("Sodium Content (mg)")
     calories = IntegerField("Calories")
-    potassium_content = IntegerField("Potassium Content")
+    potassium_content = IntegerField("Potassium Content (mg)")
     submit = SubmitField("Create New Food")
 
 
 class EditFood(FlaskForm):
+    """
+    A form to edit an existing food entry
+    """
     food_id = IntegerField(
         "Food ID", validators=[DataRequired()]
-    )  # find a way to get rid of this, just use food_name?? (consider duplicate names)
+    ) 
     food_name = StringField("Food Name", validators=[DataRequired()])
-    phosphorous_content = IntegerField("Phosphorous Content")  # need to add units
-    sodium_content = IntegerField("Phosphorous Content")
+    phosphorous_content = IntegerField("Phosphorous Content (mg)") 
+    sodium_content = IntegerField("Sodium Content (mg)")
     calories = IntegerField("Calories")
-    potassium_content = IntegerField("Potassium Content")
-    amount = IntegerField("Serving Size")
+    potassium_content = IntegerField("Potassium Content (mg)")
+    amount = IntegerField("Serving Size (g)")
     submit = SubmitField("Update Food")
 
 
 class NewDialysisForm(FlaskForm):
+    """
+    A form to add a new form of dialysis
+    """
     name = StringField("Name of Dialysis Type", validators=[DataRequired()])
     location_type = StringField("Location Type", validators=[DataRequired()])
     adequacy_standard = FloatField("Adequacy Standard", validators=[DataRequired()])
@@ -108,6 +131,9 @@ class NewDialysisForm(FlaskForm):
 
 
 class EditDialysisForm(FlaskForm):
+    """
+    A form to edit an existing form of dialysis
+    """
     dialysis_id = IntegerField("Dialysis ID", validators=[DataRequired()])
     name = StringField("Name of Dialysis Type", validators=[DataRequired()])
     location_type = StringField("Location Type", validators=[DataRequired()])
@@ -115,7 +141,10 @@ class EditDialysisForm(FlaskForm):
     submit = SubmitField("Edit Dialysis Type")
 
 
-class NewPatientFood(FlaskForm):  # why are we using a composite primary key??
+class NewPatientFood(FlaskForm):  
+    """
+    A form to add a new patient
+    """
     food_id = SelectField("Food ID", validators=[DataRequired()])
     patient_id = SelectField("Patient ID", validators=[DataRequired()])
     food_time = DateTimeLocalField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
@@ -123,6 +152,9 @@ class NewPatientFood(FlaskForm):  # why are we using a composite primary key??
 
 
 class EditPatientFood(FlaskForm):
+    """
+    A form to edit an existing patient
+    """
     food_id = SelectField("Food", validators=[DataRequired()])
     patient_id = SelectField("Patient", validators=[DataRequired()])
     food_time = DateTimeLocalField("Consumption Time", validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
@@ -156,27 +188,40 @@ def home():
 
 @app.route("/patients", methods=["POST", "GET"])
 def patients_view():
+    """
+    Creates the patients view page and allows for the creation of new patients
+    """
+    #create database connection
     db_connection = MySQLdb.connect(host= app.config["MYSQL_HOST"], user = app.config["MYSQL_USER"], passwd = app.config["MYSQL_PASSWORD"],db=app.config["MYSQL_DB"])
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
-    q = request.args.get('q')
+
+    q = request.args.get('q') # for use with the search bar
     gender = None
-    form = NewPatient()
+    form = NewPatient() 
     if request.method == "GET":
-        query = "SELECT patient_id, last_name, first_name, age, gender, height, weight FROM Patients;"
+        query = """
+        SELECT patient_id, last_name as 'Last Name', first_name as 'First Name', age as Age, 
+        gender as Gender, height as 'Height (in)', weight as 'Weight (lbs)' FROM Patients;"""
         cursor.execute(query)
         db_connection.commit()
         results = cursor.fetchall()  # results should be a tuple containing dictionary items
-        if q:
+
+        # handle a potential search query
+        if q: 
             results = search_bar(results,q)
         db_connection.close()
         return render_template("patients.html", form=form, patients=results)
-    if request.method == "POST":
+
+    # adding a new patient
+    if request.method == "POST":  
         last_name = request.form["lname"]
         first_name = request.form["fname"]
         age = request.form["age"]
         gender = request.form["gender"]
         height = request.form["height"]
         weight = request.form["weight"]
+
+        # gender may or may not be specified
         if gender == None:
             query = "INSERT INTO Patients (last_name, first_name, age, height, weight) VALUES (%s, %s, %s, %s, %s);"
             cursor.execute(query, (last_name, first_name, age, height, weight))
@@ -190,6 +235,9 @@ def patients_view():
 
 @app.route("/delete_patient/<int:patient_id>", methods=["POST", "GET"])
 def delete_patient(patient_id):
+    """
+    A Route to delete a patient from the database.  Only post requests are handled
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
@@ -205,6 +253,10 @@ def delete_patient(patient_id):
 @app.route("/update_patient/<int:patient_id>", methods=["POST","GET"])
 @app.route("/update_patient/", methods=["POST","GET"])
 def update_patient(patient_id=None):
+    """
+    A route to allow updating patients
+    Handles GET requests to display editable patient data and POST requests to actually edit data
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditPatient()
@@ -225,6 +277,7 @@ def update_patient(patient_id=None):
         form.weight.data = patient_data['weight']
         db_connection.close()
         return render_template("update_patient.html", form=form, patient_id=patient_id)
+
     if request.method == "POST":
         pat_id = patient_id
         last_name = request.form['lname']
@@ -247,13 +300,20 @@ def update_patient(patient_id=None):
 
 @app.route("/foods", methods=["POST", "GET"])
 def foods_view():
+    """
+    Displays foods data and allows for creation of new foods
+    Supports both GET (to display existing foods) and POST requests (to create new foods entries)
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
 
     q = request.args.get('q')
     form = NewFood()
     if request.method == "GET":
-        query = "SELECT food_id, food_name, amount, phosphorous_content, sodium_content, calories, potassium_content FROM Foods;"
+        query = """
+        SELECT food_id, food_name as 'Food Name', amount as 'Serving Size (g)', phosphorous_content as 'Phosphorous Content (mg)',
+        sodium_content as 'Sodium Content (mg)', calories as 'Calories', potassium_content as 'Potassium Content (mg)' FROM Foods;
+        """
         cursor.execute(query)
         db_connection.commit()
         results = cursor.fetchall()
@@ -280,6 +340,10 @@ def foods_view():
 
 @app.route("/delete_foods/<int:food_id>", methods=["POST", "GET"])
 def delete_foods(food_id):
+    """
+    A route to delete an entry in the Foods table.  
+    Supports  POST requests to delete data. Get requests are directed to a verification page.
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
@@ -295,9 +359,16 @@ def delete_foods(food_id):
 @app.route("/update_food/<int:food_id>", methods=["POST","GET"])
 @app.route("/update_food/", methods=["POST","GET"])
 def update_food(food_id=None):
+    """
+    A route to update an existing entry in Foods
+    GET requests will display a page of existing foods, as well as the add a food form
+    POST requests will create a new entry in foods
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditFood()
+
+    # display existing foods, as well as the new food form
     if request.method == "GET":
         query0 = "SELECT food_name, phosphorous_content, sodium_content, calories, potassium_content, amount FROM Foods WHERE food_id = %s"
         cursor.execute(query0,(food_id,))
@@ -311,6 +382,8 @@ def update_food(food_id=None):
         form.amount.data = food_data['amount']
         db_connection.close()
         return render_template("update_food.html", form=form, food_id=food_id)
+
+    # create a new food
     if request.method == "POST":
         food_name = request.form["food_name"]
         amount = request.form["amount"]
@@ -319,7 +392,8 @@ def update_food(food_id=None):
         calories = request.form["calories"]
         potassium_content = request.form["potassium_content"]
         amount = request.form["amount"]
-        query = """UPDATE Foods
+        query = """
+    UPDATE Foods
     SET food_name = %s, phosphorous_content = %s, sodium_content = %s, calories = %s, 
     potassium_content = %s, amount = %s
     WHERE food_id = %s;"""
@@ -333,15 +407,20 @@ def update_food(food_id=None):
 
 @app.route("/lab_results", methods=["POST", "GET"])
 def labs_view():
+    """
+    Displays existing lab results, as well as allows creation of new lab results
+    GET requests will return a page displaying existing lab results data
+    POST requests allow creation of new lab results
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
-    q = request.args.get('q')
+    q = request.args.get('q') # q handles search bar requests
     form = NewLabResult()
     if request.method == "GET":
         query = """
         SELECT Lab_Results.lab_id, CONCAT(Patients.first_name, " ", Patients.last_name) as "Patient Name", Dialysis_Forms.name as "Dialysis Type",
-Lab_Results.phosphorus_lab as "Phosphorous Lab", Lab_Results.potassium_lab as "Potassium Lab", Lab_Results.sodium_lab as "Sodium Lab", 
-Lab_Results.dialysis_adequacy_lab as "Dialysis Adequacy", Lab_Results.lab_results_time as "Time" FROM Lab_Results
+Lab_Results.phosphorus_lab as "Phosphorous Lab (mg/dL)", Lab_Results.potassium_lab as "Potassium Lab (mEq/L)", Lab_Results.sodium_lab as "Sodium Lab (mEq/L)", 
+Lab_Results.dialysis_adequacy_lab as "Dialysis Adequacy (Kt/v)", Lab_Results.lab_results_time as "Time" FROM Lab_Results
 LEFT JOIN Patients on Lab_Results.Patients_patient_id = Patients.patient_id 
 LEFT JOIN Dialysis_Forms on Lab_Results.Dialysis_Forms_dialysis_id = Dialysis_Forms.dialysis_id;"""
         cursor.execute(query)
@@ -360,16 +439,16 @@ FROM Patients;
         # patients_dropdown is a tuple consisting of dictionaries:
         # for example: ({'patient_id': 1, 'Name': 'Arlene Smith'}, {'patient_id': 2, 'Name': 'f f'}, {'patient_id': 3, 'Name': 'Kayla Harrison'}, {'patient_id': 4, 'Name': 'Henry Jackson'}, {'patient_id': 10, 'Name': '6 65'})
         form.pat_id.choices = [(p['patient_id'],p['Name']) for p in patients_dropdown]
-        form.pat_id.choices.append(('NULL','Missing/Unknown'))   
+        form.pat_id.choices.append(('NULL','Missing/Unknown'))  # add a Null value option to support the Nullable relationship
 
-        # populate dialysis drop-down:
-        query3 = "SELECT dialysis_id, name FROM Dialysis_Forms;"
+        query3 = "SELECT dialysis_id, name FROM Dialysis_Forms;"  # populate dialysis drop-down
         cursor.execute(query3)
         db_connection.commit()
         dialyis_dropdown = cursor.fetchall()
         form.dial_id.choices = [(d['dialysis_id'],d['name']) for d in dialyis_dropdown]
-        form.dial_id.choices.append(('NULL','Missing/Unknown'))
-        if q:
+        form.dial_id.choices.append(('NULL','Missing/Unknown'))  # add a Null value option to support the Nullable relationship
+        
+        if q:  # handle search bar requests
             results = search_bar(results,q)
         db_connection.close()
         return render_template("lab_results.html", form=form, lab_data=results)
@@ -381,9 +460,12 @@ FROM Patients;
         lab_time = request.form["lab_time"]
         pat_id = request.form["pat_id"]
         dial_id = request.form["dial_id"]
-        for item in (phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id):
+
+        for item in (phos_lab, pot_lab, sod_lab, dial_lab, lab_time, pat_id, dial_id):  
             if item == "":
                 item = "NULL"
+
+        # multiple queries to support entering NULL values into Patients or Dialysis Types
         if pat_id == 'NULL' and dial_id == 'NULL':
             query = """INSERT INTO Lab_Results (phosphorus_lab, potassium_lab, sodium_lab, dialysis_adequacy_lab, lab_results_time) VALUES (%s, %s, %s, %s, %s);"""
             cursor.execute(query, (phos_lab, pot_lab, sod_lab, dial_lab, lab_time))
@@ -406,6 +488,11 @@ Patients_patient_id) VALUES (%s, %s, %s, %s, %s, %s);"""
 
 @app.route("/delete_labs/<int:lab_id>", methods=["POST", "GET"])
 def delete_labs(lab_id):
+    """
+    A route to delete existing lab result entries
+    POST requests will delete data
+    GET requests will display a verification page to before deleting data
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
@@ -489,12 +576,18 @@ FROM Patients;
 
 @app.route("/dialysis_forms", methods=["POST", "GET"])
 def dialysis_forms_view():
+    """
+    Display existing forms of dialysis
+    GET requests display existing data, and display a form for adding data
+    POST requests allow creation of new dialysis forms
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     q = request.args.get('q')
     form = NewDialysisForm()
     if request.method == "GET":
-        query = "SELECT dialysis_id, name, location_type, adequacy_standard FROM Dialysis_Forms;"
+        query = """SELECT dialysis_id, name as 'Dialysis Name', location_type as 'Location Type', adequacy_standard as 
+        'Adequacy Standard' FROM Dialysis_Forms;"""
         cursor.execute(query)
         db_connection.commit()
         results = cursor.fetchall()
@@ -517,6 +610,11 @@ def dialysis_forms_view():
 
 @app.route("/delete_dialysis_form/<int:dialysis_id>", methods=["POST", "GET"])
 def delete_dialysis_form(dialysis_id):
+    """
+    A route to delete an existing form of dialysis
+    GET displays a verification page
+    POST deletes the data
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
@@ -532,6 +630,11 @@ def delete_dialysis_form(dialysis_id):
 @app.route("/update_dialysis_type/<int:dialysis_id>", methods=["POST","GET"])
 @app.route("/update_dialysis_type/", methods=["POST","GET"])
 def update_dialysis_type(dialysis_id=None):
+    """
+    A route for updating forms of dialysis.  
+    G    ET displays a form populated with existing data.  
+    POST updates the data for a given entry
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditDialysisForm()
@@ -560,6 +663,11 @@ def update_dialysis_type(dialysis_id=None):
 
 @app.route("/patients_foods", methods=["POST", "GET"])
 def patients_foods_view():
+    """
+    A route for displaying existing entries in Patients_Foods
+    GET displays existing rows, as well as a form for creating new ones
+    POST creates a new entry in the Patients_Food table
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     q = request.args.get('q')
@@ -572,7 +680,7 @@ def patients_foods_view():
     JOIN Patients on Patients_Food.Patients_patient_id = Patients.patient_id;
     """
         cursor.execute(query)
-        db_connection.commit()   # do we need the commit after a select query?
+        db_connection.commit()  
         results = cursor.fetchall()
         query_foods = "SELECT food_id, food_name FROM Foods;"
         cursor.execute(query_foods)
@@ -607,6 +715,11 @@ FROM Patients;
 
 @app.route("/delete_patients_food/<int:patients_food_id>", methods=["POST", "GET"])
 def delete_patients_food(patients_food_id):
+    """
+    A route for deleting an entry in Patients_Food
+    GET displays a verification page
+    POST deletes existing data
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method == "POST":
@@ -623,6 +736,11 @@ def delete_patients_food(patients_food_id):
 @app.route("/update_patients_food/<int:patients_food_id>", methods=["POST","GET"])
 @app.route("/update_patients_food/", methods=["POST","GET"])
 def update_patients_food(patients_food_id=None):
+    """
+    A route for updating an existing entry in the Patients_Food table
+    GET displays a form populated with existing data
+    POST updates an entry in Patients_Food
+    """
     db_connection = MySQLdb.connect(host= os.environ.get("340DBHOST"), user = os.environ.get("340DBUSER"), passwd = os.environ.get("340DBPW"),db=os.environ.get("340DB"))
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
     form = EditPatientFood()
@@ -644,7 +762,7 @@ FROM Patients;
         form.food_id.choices = [(f['food_id'], f['food_name']) for f in foods_dropdown]
 
         # populate form data
-        query0 = "SELECT Foods_food_id, Patients_patient_id, patient_food_time FROM Patients_Food WHERE patients_food_id = %s"
+        query0 = "SELECT Foods_food_id, Patients_patient_id, patient_food_time FROM Patients_Food WHERE patients_food_id = %s;"
         cursor.execute(query0, (patients_food_id,))
         pat_food_data = cursor.fetchall()[0]
         form.food_id.data = pat_food_data['Foods_food_id']
